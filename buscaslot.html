@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Slot Price Scout | Mobile Pro</title>
+    <title>Slot Price Scout | Professional</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&display=swap');
@@ -55,7 +55,6 @@
         .stat-box.min { border-color: var(--neon-green); box-shadow: inset 0 0 10px rgba(16, 185, 129, 0.1); }
         .stat-box.max { border-color: var(--neon-red); box-shadow: inset 0 0 10px rgba(239, 68, 68, 0.1); }
         
-        /* Caja de Recomendación Dorada */
         .rec-box {
             background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
             border: 1px solid var(--neon-gold);
@@ -92,10 +91,10 @@
 
 <div id="app" class="min-h-screen flex flex-col items-center w-full p-3 sm:p-4 pb-12">
 
-    <!-- Header -->
+    <!-- Header Limpio -->
     <header class="w-full max-w-lg p-4 mb-4 text-center rounded-2xl shadow-xl border border-blue-900/40 bg-gray-900/80 backdrop-blur-md sticky top-2 z-50">
         <h1 class="text-2xl sm:text-3xl font-black mb-0 neon-title italic truncate">SLOT PRICE SCOUT</h1>
-        <p class="text-[10px] sm:text-xs text-gray-400 font-mono tracking-widest uppercase mt-1">by Albert Closa</p>
+        <p class="text-[10px] sm:text-xs text-gray-400 font-mono tracking-widest uppercase mt-1">Professional Edition</p>
     </header>
 
     <!-- Main Content -->
@@ -231,17 +230,10 @@
             </div>
         </div>
 
-        <!-- Info -->
+        <!-- Info (Opcional, se puede quitar para versión comercial limpia) -->
         <div class="mt-8 p-5 rounded-2xl border border-blue-900/30 bg-gray-900/40 text-center fade-in backdrop-blur-sm">
-            <div class="flex items-center justify-center space-x-2 mb-3">
-                <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                <h3 class="text-blue-400 font-bold text-xs uppercase tracking-widest">SOBRE ESTA HERRAMIENTA</h3>
-            </div>
-            <p class="text-[11px] sm:text-xs text-gray-400 leading-relaxed text-justify px-2 font-light">
-                Slot Price Scout transforma tu dispositivo en un tasador profesional. 
-                Utilizamos IA para identificar el modelo y evaluar su <strong>estado de conservación</strong>.
-                Rastreamos en tiempo real <span class="text-blue-300 font-semibold">Wallapop, Vinted, eBay y Amazon</span>.
-                Te ofrecemos una valoración de mercado (Mínimo/Máximo) y un <strong>Precio Recomendado</strong> personalizado según si el coche está nuevo, usado o necesita restauración.
+            <p class="text-[10px] text-gray-500 leading-relaxed font-light">
+                Powered by Advanced AI Valuation Tech. Market data is real-time estimation.
             </p>
         </div>
 
@@ -249,7 +241,7 @@
         <div id="errorMessage" class="hidden fixed bottom-5 left-4 right-4 z-[100] p-4 bg-red-950/95 border border-red-500 text-white rounded-xl shadow-2xl backdrop-blur-md animate-bounce-in flex items-center">
             <div class="mr-3 p-2 bg-red-900 rounded-full flex-shrink-0">⚠️</div>
             <div class="flex-1">
-                <p class="font-bold text-xs uppercase text-red-400">Error del Sistema</p>
+                <p class="font-bold text-xs uppercase text-red-400">Servicio no disponible</p>
                 <p id="errorText" class="text-sm font-medium leading-tight"></p>
             </div>
             <button onclick="document.getElementById('errorMessage').classList.add('hidden')" class="ml-3 p-2 text-gray-400 hover:text-white bg-red-900/50 rounded-lg">✕</button>
@@ -259,9 +251,15 @@
 </div>
 
 <script>
-    // --- CORRECCIÓN: Clave API manejada por el entorno ---
-    const apiKey = ""; 
-    const VMM_MODEL_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+    // --- ZONA COMERCIAL: PON TU CLAVE AQUÍ ---
+    // IMPORTANTE: Recuerda restringir esta clave en Google Cloud Console para que solo funcione en TU dominio web.
+    // Si no la restringes, cualquiera que vea el código podrá usar tu saldo.
+    
+    const COMMERCIAL_API_KEY = "AIzaSyBxhtfeKb_sL92jfa-HhCsAlenoYkDCcSs"; 
+
+    // ----------------------------------------
+
+    const VMM_MODEL_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${COMMERCIAL_API_KEY}`;
 
     let state = {
         image: null,
@@ -341,21 +339,28 @@
             
             els.searchBtn.disabled = false;
             els.btnText.textContent = "ANALIZAR MERCADO";
-            speak("Imagen cargada. Pulsa Analizar.");
+            speak("Imagen lista.");
             
             $('statusDot').classList.remove('bg-gray-600', 'bg-red-500');
             $('statusDot').classList.add('bg-green-500');
             
-        } catch (e) { showError("Error al procesar imagen."); }
+        } catch (e) { showError("Error interno de imagen."); }
     };
 
     const showError = (msg) => {
-        speak("Error.");
-        els.errText.textContent = msg;
+        console.error(msg);
+        let userMsg = "El sistema está ocupado. Inténtalo de nuevo.";
+        
+        // Mensajes específicos para debuguear problemas de clave
+        if (msg.includes('403') || msg.includes('400')) {
+            userMsg = "Error de Seguridad: La clave API no está autorizada para este dominio.";
+        }
+        
+        els.errText.textContent = userMsg;
         els.errToast.classList.remove('hidden');
         els.loader.classList.add('hidden');
         if (state.image) els.searchBtn.disabled = false;
-        setTimeout(() => els.errToast.classList.add('hidden'), 7000);
+        setTimeout(() => els.errToast.classList.add('hidden'), 5000);
     };
 
     const startCam = async () => {
@@ -373,9 +378,9 @@
                 state.stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 els.video.srcObject = state.stream;
             } catch (err) { 
-                console.error(err);
                 resetUI(); 
-                showError("No se pudo acceder a la cámara. Revisa los permisos."); 
+                // Mensaje comercial: no culpar al usuario, sugerir permisos
+                alert("Por favor habilita el acceso a la cámara para escanear coches."); 
             }
         }
     };
@@ -412,10 +417,15 @@
         $('statusDot').classList.add('bg-gray-600');
     };
 
-    // --- Lógica Principal ---
     window.startSearch = async () => {
         if (!state.image) return;
         
+        // Check simple de seguridad
+        if (COMMERCIAL_API_KEY.length < 10) {
+            alert("Error de configuración del servidor (API KEY).");
+            return;
+        }
+
         els.resCard.classList.remove('hidden');
         els.loader.classList.remove('hidden');
         els.idSec.classList.add('hidden');
@@ -427,40 +437,35 @@
         
         els.resCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-        speak("Analizando imagen...");
-
         try {
-            // 1. Identificar y Estimar Estado
-            els.loadMsg.textContent = "IDENTIFICANDO MODELO Y ESTADO...";
+            // 1. Identificar
+            els.loadMsg.textContent = "ESCANNEANDO MODELO...";
             const carInfo = await identifyCar(state.image);
             
             if (!carInfo.isSlotCar && !carInfo.model) {
                 if(carInfo.keywords) carInfo.isSlotCar = true; 
-                else throw new Error("No parece un coche de slot reconocido.");
+                else throw new Error("Objeto no reconocido como Slot Car.");
             }
             
             els.idCar.textContent = `${carInfo.model}`;
             els.idBrand.textContent = `${carInfo.brand}`;
             
             const conditionText = carInfo.condition || "Usado";
-            els.idCond.textContent = `Estado Detectado: ${conditionText.toUpperCase()}`;
+            els.idCond.textContent = `Estado: ${conditionText.toUpperCase()}`;
             els.idSec.classList.remove('hidden');
             
-            // 2. Buscar Precios
-            els.loadMsg.textContent = "BUSCANDO OFERTAS...";
+            // 2. Precios
+            els.loadMsg.textContent = "ANALIZANDO MERCADO GLOBAL...";
             const platforms = [
                 { name: "Wallapop / Vinted", query: `precio ${carInfo.keywords} wallapop vinted` },
-                { name: "eBay / Amazon", query: `buy ${carInfo.keywords} slot car ebay amazon price` },
-                { name: "Tiendas Oficiales", query: `precio ${carInfo.keywords} tienda slot online` }
+                { name: "Mercado Coleccionista", query: `buy ${carInfo.keywords} slot car ebay amazon price` }
             ];
 
             const results = await Promise.all(platforms.map(p => fetchPrices(p)));
-            
             renderResults(results, carInfo, conditionText);
 
         } catch (e) { 
-            console.error(e);
-            showError(e.message || "Error desconocido"); 
+            showError(e.message); 
         } 
         finally { els.loader.classList.add('hidden'); els.searchBtn.disabled = false; }
     };
@@ -484,17 +489,16 @@
         const res = await fetch(VMM_MODEL_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         
         if(!res.ok) {
-            const errBody = await res.text();
-            throw new Error(`Fallo IA (${res.status}): ${errBody.substring(0, 50)}...`);
+            const err = await res.text();
+            throw new Error(`Error API (${res.status}): ${err}`);
         }
-        
         const json = await res.json();
         return JSON.parse(json.candidates[0].content.parts[0].text);
     };
 
     const fetchPrices = async (platform) => {
         const searchPrompt = `Busca precios en EUR para "${platform.query}". Lista 3 precios concretos encontrados.`;
-        const fallbackPrompt = `Estima 3 precios realistas en EUR para "${platform.query}" basándote en tu conocimiento de mercado de segunda mano. Formato texto libre con precios.`;
+        const fallbackPrompt = `Estima 3 precios realistas en EUR para "${platform.query}" basándote en datos históricos de mercado.`;
 
         const payloadWithTools = {
             contents: [{ parts: [{ text: searchPrompt }] }],
@@ -508,21 +512,24 @@
         try {
             const res = await fetch(VMM_MODEL_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payloadWithTools) });
             
-            if (!res.ok) throw new Error("Search Grounding falló");
-            
+            if(!res.ok) throw new Error("API Error");
+
             const json = await res.json();
+            
+            if (!json.candidates) throw new Error("No candidates");
+
             return { 
                 platform: platform.name, 
                 text: json.candidates?.[0]?.content?.parts?.[0]?.text || "", 
                 sources: json.candidates?.[0]?.groundingMetadata?.groundingAttributions || [] 
             };
         } catch (e) {
-            console.warn(`Fallback a IA pura para ${platform.name}: ${e.message}`);
             try {
+                // Fallback silencioso a estimación IA
                 const res = await fetch(VMM_MODEL_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payloadFallback) });
                 const json = await res.json();
                 return { 
-                    platform: platform.name + " (Est. IA)", 
+                    platform: platform.name + " (Estimado)", 
                     text: json.candidates?.[0]?.content?.parts?.[0]?.text || "", 
                     sources: [] 
                 };
@@ -586,13 +593,11 @@
             setupLink(els.maxLink, maxLink);
 
             els.priceSec.classList.remove('hidden');
-
-            const speech = `He identificado un ${carInfo.brand} ${carInfo.model}. Precios entre ${minVal} y ${maxVal} euros. Recomendado: ${recPrice} euros.`;
-            speak(speech);
+            speak(`Tasación finalizada. Valor estimado: ${recPrice} euros.`);
 
         } else {
             els.noRes.classList.remove('hidden');
-            speak(`Identificado ${carInfo.model}, pero no tengo suficientes datos de precio.`);
+            speak("Datos insuficientes para tasar este modelo exacto.");
         }
 
         if (htmlSources) {
