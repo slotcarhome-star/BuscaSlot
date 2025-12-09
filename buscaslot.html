@@ -230,19 +230,19 @@
             </div>
         </div>
 
-        <!-- Info (Opcional, se puede quitar para versión comercial limpia) -->
+        <!-- Info -->
         <div class="mt-8 p-5 rounded-2xl border border-blue-900/30 bg-gray-900/40 text-center fade-in backdrop-blur-sm">
             <p class="text-[10px] text-gray-500 leading-relaxed font-light">
                 Powered by Advanced AI Valuation Tech. Market data is real-time estimation.
             </p>
         </div>
 
-        <!-- Error Alert -->
+        <!-- Error Alert Mejorado -->
         <div id="errorMessage" class="hidden fixed bottom-5 left-4 right-4 z-[100] p-4 bg-red-950/95 border border-red-500 text-white rounded-xl shadow-2xl backdrop-blur-md animate-bounce-in flex items-center">
             <div class="mr-3 p-2 bg-red-900 rounded-full flex-shrink-0">⚠️</div>
             <div class="flex-1">
-                <p class="font-bold text-xs uppercase text-red-400">Servicio no disponible</p>
-                <p id="errorText" class="text-sm font-medium leading-tight"></p>
+                <p class="font-bold text-xs uppercase text-red-400">Diagnóstico del Error</p>
+                <p id="errorText" class="text-sm font-medium leading-tight text-white"></p>
             </div>
             <button onclick="document.getElementById('errorMessage').classList.add('hidden')" class="ml-3 p-2 text-gray-400 hover:text-white bg-red-900/50 rounded-lg">✕</button>
         </div>
@@ -251,13 +251,15 @@
 </div>
 
 <script>
-    // --- ZONA COMERCIAL: PON TU CLAVE AQUÍ ---
-    // IMPORTANTE: Recuerda restringir esta clave en Google Cloud Console para que solo funcione en TU dominio web.
-    // Si no la restringes, cualquiera que vea el código podrá usar tu saldo.
+    // ==========================================
+    // CONFIGURACIÓN DE SEGURIDAD
+    // ==========================================
+    // NOTA: Esta clave funcionará SOLO si has añadido "https://slotcarhome-star.github.io/*"
+    // a las restricciones de tu API Key en Google Cloud Console.
     
     const COMMERCIAL_API_KEY = "AIzaSyBxhtfeKb_sL92jfa-HhCsAlenoYkDCcSs"; 
 
-    // ----------------------------------------
+    // ==========================================
 
     const VMM_MODEL_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${COMMERCIAL_API_KEY}`;
 
@@ -344,23 +346,31 @@
             $('statusDot').classList.remove('bg-gray-600', 'bg-red-500');
             $('statusDot').classList.add('bg-green-500');
             
-        } catch (e) { showError("Error interno de imagen."); }
+        } catch (e) { showError("Error interno de imagen.", false); }
     };
 
-    const showError = (msg) => {
+    const showError = (msg, isCritical = true) => {
         console.error(msg);
-        let userMsg = "El sistema está ocupado. Inténtalo de nuevo.";
+        let userMsg = msg;
         
-        // Mensajes específicos para debuguear problemas de clave
-        if (msg.includes('403') || msg.includes('400')) {
-            userMsg = "Error de Seguridad: La clave API no está autorizada para este dominio.";
+        // Diagnóstico inteligente de errores
+        if (msg.includes('403')) {
+            userMsg = "🚫 ACCESO DENEGADO (403): Tu dominio 'slotcarhome-star.github.io' no está autorizado en Google Cloud. Añádelo en Credenciales > Restricciones.";
+        } else if (msg.includes('400')) {
+            userMsg = "❌ ERROR DE CLAVE (400): La API Key es inválida o ha caducado. Revisa el código.";
+        } else if (msg.includes('Failed to fetch')) {
+            userMsg = "🌐 SIN CONEXIÓN: Verifica tu internet o si un bloqueador de anuncios está cortando la conexión.";
+        } else if (!isCritical) {
+             userMsg = "⚠️ Advertencia: " + msg;
         }
-        
+
         els.errText.textContent = userMsg;
         els.errToast.classList.remove('hidden');
         els.loader.classList.add('hidden');
         if (state.image) els.searchBtn.disabled = false;
-        setTimeout(() => els.errToast.classList.add('hidden'), 5000);
+        
+        // Si es crítico, dejamos el mensaje visible más tiempo
+        setTimeout(() => els.errToast.classList.add('hidden'), isCritical ? 10000 : 5000);
     };
 
     const startCam = async () => {
@@ -379,7 +389,6 @@
                 els.video.srcObject = state.stream;
             } catch (err) { 
                 resetUI(); 
-                // Mensaje comercial: no culpar al usuario, sugerir permisos
                 alert("Por favor habilita el acceso a la cámara para escanear coches."); 
             }
         }
@@ -420,9 +429,8 @@
     window.startSearch = async () => {
         if (!state.image) return;
         
-        // Check simple de seguridad
         if (COMMERCIAL_API_KEY.length < 10) {
-            alert("Error de configuración del servidor (API KEY).");
+            alert("Error: Falta la API KEY en el código.");
             return;
         }
 
@@ -489,8 +497,8 @@
         const res = await fetch(VMM_MODEL_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         
         if(!res.ok) {
-            const err = await res.text();
-            throw new Error(`Error API (${res.status}): ${err}`);
+            // Capturamos el código de estado para diagnóstico
+            throw new Error(`Error HTTP ${res.status}`);
         }
         const json = await res.json();
         return JSON.parse(json.candidates[0].content.parts[0].text);
@@ -512,7 +520,7 @@
         try {
             const res = await fetch(VMM_MODEL_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payloadWithTools) });
             
-            if(!res.ok) throw new Error("API Error");
+            if(!res.ok) throw new Error(`HTTP ${res.status}`);
 
             const json = await res.json();
             
@@ -524,8 +532,11 @@
                 sources: json.candidates?.[0]?.groundingMetadata?.groundingAttributions || [] 
             };
         } catch (e) {
+            // Si falla la búsqueda (ej. permisos), fallback silencioso a IA
+            // PERO si el error es de autenticación (403/400), lo propagamos
+            if (e.message.includes('403') || e.message.includes('400')) throw e;
+
             try {
-                // Fallback silencioso a estimación IA
                 const res = await fetch(VMM_MODEL_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payloadFallback) });
                 const json = await res.json();
                 return { 
