@@ -259,8 +259,8 @@
 </div>
 
 <script>
-    // --- CLAVE API INCRUSTADA ---
-    const apiKey = "AIzaSyBxhtfeKb_sL92jfa-HhCsAlenoYkDCcSs"; 
+    // --- CORRECCIÓN: Clave API manejada por el entorno ---
+    const apiKey = ""; 
     const VMM_MODEL_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
     let state = {
@@ -343,7 +343,6 @@
             els.btnText.textContent = "ANALIZAR MERCADO";
             speak("Imagen cargada. Pulsa Analizar.");
             
-            // Animación visual de éxito
             $('statusDot').classList.remove('bg-gray-600', 'bg-red-500');
             $('statusDot').classList.add('bg-green-500');
             
@@ -356,7 +355,7 @@
         els.errToast.classList.remove('hidden');
         els.loader.classList.add('hidden');
         if (state.image) els.searchBtn.disabled = false;
-        setTimeout(() => els.errToast.classList.add('hidden'), 5000);
+        setTimeout(() => els.errToast.classList.add('hidden'), 7000);
     };
 
     const startCam = async () => {
@@ -365,14 +364,12 @@
         els.camSec.classList.remove('hidden');
         if (state.stream) stopCam();
         try {
-            // Intentar cámara trasera primero
             state.stream = await navigator.mediaDevices.getUserMedia({ 
                 video: { facingMode: { exact: "environment" } } 
             });
             els.video.srcObject = state.stream;
         } catch (e) {
             try {
-                // Fallback a cualquier cámara disponible
                 state.stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 els.video.srcObject = state.stream;
             } catch (err) { 
@@ -438,7 +435,6 @@
             const carInfo = await identifyCar(state.image);
             
             if (!carInfo.isSlotCar && !carInfo.model) {
-                // Intento de recuperación si la IA dice false pero detecta algo
                 if(carInfo.keywords) carInfo.isSlotCar = true; 
                 else throw new Error("No parece un coche de slot reconocido.");
             }
@@ -460,7 +456,6 @@
 
             const results = await Promise.all(platforms.map(p => fetchPrices(p)));
             
-            // Pasar la información del estado para el cálculo del precio
             renderResults(results, carInfo, conditionText);
 
         } catch (e) { 
@@ -487,52 +482,49 @@
             generationConfig: { responseMimeType: "application/json" }
         };
         const res = await fetch(VMM_MODEL_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-        if(!res.ok) throw new Error("Error conectando con IA (Identificación)");
+        
+        if(!res.ok) {
+            const errBody = await res.text();
+            throw new Error(`Fallo IA (${res.status}): ${errBody.substring(0, 50)}...`);
+        }
+        
         const json = await res.json();
         return JSON.parse(json.candidates[0].content.parts[0].text);
     };
 
     const fetchPrices = async (platform) => {
-        // ESTRATEGIA DUAL: Intenta buscar en internet. Si la Key no tiene permisos,
-        // usa el conocimiento interno de la IA (Fallback).
-        
         const searchPrompt = `Busca precios en EUR para "${platform.query}". Lista 3 precios concretos encontrados.`;
         const fallbackPrompt = `Estima 3 precios realistas en EUR para "${platform.query}" basándote en tu conocimiento de mercado de segunda mano. Formato texto libre con precios.`;
 
-        // Intento 1: Con herramienta Google Search
         const payloadWithTools = {
             contents: [{ parts: [{ text: searchPrompt }] }],
             tools: [{ "google_search": {} }]
         };
 
-        // Intento 2: Solo IA (sin buscar fuera)
         const payloadFallback = {
             contents: [{ parts: [{ text: fallbackPrompt }] }]
         };
 
         try {
-            // Intentar con Search Grounding
             const res = await fetch(VMM_MODEL_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payloadWithTools) });
-            const json = await res.json();
             
-            // Si hay error de permisos (400/403) o no hay candidatos, lanzar error para ir al catch
-            if (!res.ok || !json.candidates) throw new Error("Grounding falló");
-
+            if (!res.ok) throw new Error("Search Grounding falló");
+            
+            const json = await res.json();
             return { 
                 platform: platform.name, 
                 text: json.candidates?.[0]?.content?.parts?.[0]?.text || "", 
                 sources: json.candidates?.[0]?.groundingMetadata?.groundingAttributions || [] 
             };
         } catch (e) {
-            console.warn(`Fallo búsqueda real para ${platform.name}, usando conocimiento IA...`);
-            // Fallback: Usar solo IA
+            console.warn(`Fallback a IA pura para ${platform.name}: ${e.message}`);
             try {
                 const res = await fetch(VMM_MODEL_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payloadFallback) });
                 const json = await res.json();
                 return { 
                     platform: platform.name + " (Est. IA)", 
                     text: json.candidates?.[0]?.content?.parts?.[0]?.text || "", 
-                    sources: [] // Sin fuentes externas reales
+                    sources: [] 
                 };
             } catch (err2) {
                 return { platform: platform.name, text: null, sources: [] };
@@ -543,23 +535,18 @@
     const renderResults = (results, carInfo, condition) => {
         let priceData = [];
         let htmlSources = '';
-        // Regex mejorado para capturar precios
         const regex = /(?:€\s?|EUR\s?)(\d+[\.,]?\d*)|(\d+[\.,]?\d*)\s?(?:€|EUR)/gi;
 
         results.forEach(res => {
             if (!res.text) return;
             let primaryLink = res.sources.length > 0 ? res.sources[0].web.uri : null;
             let match;
-            let found = false;
             while ((match = regex.exec(res.text)) !== null) {
                 let val = parseFloat((match[1] || match[2]).replace(',', '.'));
-                // Filtros de cordura (ni muy barato ni absurdo)
                 if (!isNaN(val) && val > 5 && val < 2000) {
                     priceData.push({ value: val, link: primaryLink });
-                    found = true;
                 }
             }
-            // Mostrar texto si se encontró algo o si hay fuentes
             if (res.text.length > 5) {
                 const links = res.sources.map(s => s.web?.uri ? `<a href="${s.web.uri}" target="_blank" class="text-blue-400 underline block truncate text-[10px] mt-1 p-1 bg-gray-900 rounded hover:text-white">🔗 ${s.web.title}</a>` : '').slice(0, 2).join('');
                 htmlSources += `<div class="bg-gray-800 p-3 rounded-lg border-l-2 border-blue-600 shadow-md mb-2"><h5 class="font-bold text-gray-300 text-xs">${res.platform}</h5><p class="text-[10px] text-gray-400 mb-1 leading-snug">${res.text.replace(/\*/g, '').substring(0, 120)}...</p>${links}</div>`;
@@ -568,37 +555,28 @@
 
         if (priceData.length > 0) {
             priceData.sort((a, b) => a.value - b.value);
-            
-            // Eliminar outliers extremos si hay suficientes datos
-            if(priceData.length > 4) {
-                priceData = priceData.slice(1, -1);
-            }
+            if(priceData.length > 4) priceData = priceData.slice(1, -1);
             
             const minVal = priceData[0].value;
             const maxVal = priceData[priceData.length - 1].value;
             const minLink = priceData[0].link;
             const maxLink = priceData[priceData.length - 1].link;
 
-            // --- Lógica de Recomendación ---
             let recPrice = 0;
             const avg = (minVal + maxVal) / 2;
             
             if (condition.toLowerCase().includes('nuevo')) {
-                // Nuevo: Cerca del máximo
                 recPrice = maxVal * 0.95;
             } else if (condition.toLowerCase().includes('bueno')) {
-                // Bueno: Promedio
                 recPrice = avg;
             } else {
-                // Malo: Cerca del mínimo
                 recPrice = minVal * 1.1;
             }
             recPrice = Math.round(recPrice);
 
-            // Update UI
             els.minP.textContent = `${minVal}€`;
             els.maxP.textContent = `${maxVal}€`;
-            els.recP.textContent = `${recPrice}€`; // Highlight
+            els.recP.textContent = `${recPrice}€`;
 
             const setupLink = (el, link) => {
                 if (link) { el.href = link; el.classList.remove('hidden'); el.classList.add('inline-block'); } 
@@ -609,10 +587,7 @@
 
             els.priceSec.classList.remove('hidden');
 
-            // --- Narración Completa ---
-            const speech = `He identificado un ${carInfo.brand} ${carInfo.model}. 
-                           Precios encontrados entre ${minVal} y ${maxVal} euros. 
-                           Valoración recomendada: ${recPrice} euros.`;
+            const speech = `He identificado un ${carInfo.brand} ${carInfo.model}. Precios entre ${minVal} y ${maxVal} euros. Recomendado: ${recPrice} euros.`;
             speak(speech);
 
         } else {
