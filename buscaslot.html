@@ -2,342 +2,641 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Slot Car Valuator AI</title>
-    
-    <!-- Tailwind CSS (Estilos) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Slot Price Scout | Mobile Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- React & ReactDOM (Librerías principales) -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    
-    <!-- Babel (Traductor de código en el navegador) -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-    <!-- Estilos extra para animaciones -->
     <style>
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&display=swap');
+        
+        body { 
+            font-family: 'Orbitron', sans-serif; 
+            background-color: #050718; 
+            color: #d1d5db; 
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
         }
-        .animate-fade-in {
-            animation: fadeIn 0.5s ease-out forwards;
+
+        :root {
+            --neon-color: #3b82f6;
+            --neon-green: #10b981;
+            --neon-red: #ef4444;
+            --neon-gold: #f59e0b;
         }
+
+        .neon-title {
+            color: #dbeafe; 
+            text-shadow: 0 0 4px var(--neon-color), 0 0 8px #93c5fd; 
+            letter-spacing: 0.1em;
+        }
+
+        .neon-card {
+            background-color: #111827; 
+            border: 1px solid #1e3a8a;
+            box-shadow: 0 0 15px rgba(30, 58, 138, 0.3);
+            transition: all 0.3s ease-in-out;
+        }
+
+        .neon-button {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: #ffffff;
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+            transition: transform 0.1s;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+        .neon-button:active { transform: scale(0.98); }
+        .neon-button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(100%); }
+
+        .stat-box {
+            background-color: #0f172a; 
+            border: 1px solid #334155;
+            display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .stat-box.min { border-color: var(--neon-green); box-shadow: inset 0 0 10px rgba(16, 185, 129, 0.1); }
+        .stat-box.max { border-color: var(--neon-red); box-shadow: inset 0 0 10px rgba(239, 68, 68, 0.1); }
+        
+        /* Caja de Recomendación Dorada */
+        .rec-box {
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+            border: 1px solid var(--neon-gold);
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        .rec-box::before {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(245,158,11,0.1) 0%, transparent 70%);
+            animation: pulse-gold 3s infinite;
+        }
+        @keyframes pulse-gold { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+        .price-text { text-shadow: 0 0 10px currentColor; }
+
+        #cameraStream {
+            width: 100%; height: 60vh; max-height: 400px;
+            object-fit: cover; background: #000; border-radius: 0.75rem;
+        }
+        
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .toggle-checkbox:checked { right: 0; border-color: #3b82f6; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #3b82f6; }
+        
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #111827; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #1e40af; border-radius: 4px; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 font-sans">
-    <div id="root"></div>
+<body>
 
-    <script type="text/babel">
-        const { useState, useRef, useEffect } = React;
+<div id="app" class="min-h-screen flex flex-col items-center w-full p-3 sm:p-4 pb-12">
 
-        // --- CLAVE API ---
-        const API_KEY = "AIzaSyBxhtfeKb_sL92jfa-HhCsAlenoYkDCcSs"; 
+    <!-- Header -->
+    <header class="w-full max-w-lg p-4 mb-4 text-center rounded-2xl shadow-xl border border-blue-900/40 bg-gray-900/80 backdrop-blur-md sticky top-2 z-50">
+        <h1 class="text-2xl sm:text-3xl font-black mb-0 neon-title italic truncate">SLOT PRICE SCOUT</h1>
+        <p class="text-[10px] sm:text-xs text-gray-400 font-mono tracking-widest uppercase mt-1">by Albert Closa</p>
+    </header>
 
-        // --- ICONOS (SVG) ---
-        const IconCar = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>;
-        const IconCamera = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>;
-        const IconUpload = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>;
-        const IconDollar = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>;
-        const IconLoader = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>;
-        const IconExternalLink = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>;
-        const IconAlert = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>;
-        const IconRotate = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>;
-        const IconInfo = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>;
+    <!-- Main Content -->
+    <main class="w-full max-w-lg space-y-4 flex-grow">
 
-        // --- COMPONENTE PRINCIPAL ---
-        function App() {
-            const [image, setImage] = useState(null);
-            const [loading, setLoading] = useState(false);
-            const [error, setError] = useState(null);
-            const [result, setResult] = useState(null);
+        <!-- Input Card -->
+        <div id="upload-card" class="neon-card p-4 sm:p-6 rounded-2xl fade-in relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 via-cyan-400 to-blue-600 opacity-50"></div>
             
-            const fileInputRef = useRef(null);
-            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`;
-
-            const handleFileUpload = (event) => {
-                const file = event.target.files?.[0];
-                if (file) processFile(file);
-            };
-
-            const processFile = (file) => {
-                if (!file.type.startsWith('image/')) {
-                    setError("Por favor sube un archivo de imagen válido (JPG, PNG).");
-                    return;
-                }
-                setResult(null);
-                setError(null);
-                setLoading(true);
-
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    const base64String = reader.result;
-                    setImage(base64String);
-                    analyzeImageWithGemini(base64String);
-                };
-                reader.onerror = () => {
-                    setError("Error al leer el archivo de imagen.");
-                    setLoading(false);
-                };
-                reader.readAsDataURL(file);
-            };
-
-            const analyzeImageWithGemini = async (base64Image) => {
-                try {
-                    const base64Data = base64Image.split(',')[1];
-                    
-                    const prompt = `
-                        Actúa como un experto tasador de coches de Slot y coleccionismo (Scalextric, Ninco, Fly, Carrera).
-                        Analiza la imagen. Identifica: Marca, Modelo, Decoración/Dorsal y Estado.
-                        
-                        Estima el precio de mercado actual (segunda mano/colección) en EUROS.
-                        Devuelve SOLO un JSON con este formato exacto:
-                        {
-                        "brand": "Marca detectada",
-                        "model": "Modelo y decoración",
-                        "condition_note": "Nota breve sobre el estado visual",
-                        "estimated_price_low": número_precio_bajo,
-                        "estimated_price_high": número_precio_alto,
-                        "description": "Párrafo breve con historia o detalles técnicos.",
-                        "search_query": "Texto de búsqueda optimizado para este coche"
-                        }
-                    `;
-
-                    const response = await fetch(API_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            contents: [{
-                                parts: [
-                                    { text: prompt },
-                                    { inlineData: { mimeType: "image/jpeg", data: base64Data } }
-                                ]
-                            }],
-                            generationConfig: { responseMimeType: "application/json" }
-                        })
-                    });
-
-                    if (!response.ok) {
-                        const err = await response.json();
-                        console.error("API Error:", err);
-                        if (response.status === 400) throw new Error("Clave API inválida o petición incorrecta.");
-                        throw new Error(`Error del servidor (${response.status}). Inténtalo de nuevo.`);
-                    }
-
-                    const data = await response.json();
-                    const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                    
-                    if (textResponse) {
-                        setResult(JSON.parse(textResponse));
-                    } else {
-                        throw new Error("La IA no pudo reconocer el coche.");
-                    }
-
-                } catch (err) {
-                    console.error(err);
-                    setError(err.message || "Ocurrió un error inesperado.");
-                } finally {
-                    setLoading(false);
-                }
-            };
-
-            const resetApp = () => {
-                setImage(null);
-                setResult(null);
-                setError(null);
-                if (fileInputRef.current) fileInputRef.current.value = '';
-            };
-
-            const getMarketplaceLink = (platform, query) => {
-                const q = encodeURIComponent(query);
-                const links = {
-                    ebay: `https://www.ebay.es/sch/i.html?_nkw=${q}&_sacat=0`,
-                    wallapop: `https://es.wallapop.com/app/search?keywords=${q}`,
-                    todocoleccion: `https://www.todocoleccion.net/buscador?bu=${q}`,
-                    google: `https://www.google.com/search?q=${q}&tbm=shop`
-                };
-                return links[platform] || '#';
-            };
-
-            return (
-                <div className="min-h-screen bg-slate-50 text-slate-900 pb-12">
-                    
-                    {/* Header */}
-                    <header className="bg-slate-900 text-white py-6 px-4 shadow-xl sticky top-0 z-50">
-                        <div className="max-w-3xl mx-auto flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="bg-yellow-500 p-2 rounded-lg text-slate-900">
-                                    <IconCar className="w-6 h-6" />
-                                </div>
-                                <div>
-                                    <h1 className="text-xl font-bold tracking-tight">Slot Car Valuator AI</h1>
-                                    <p className="text-slate-400 text-xs hidden sm:block">Identificación y tasación instantánea</p>
-                                </div>
-                            </div>
-                            <div className="text-xs text-emerald-400 border border-emerald-900 bg-emerald-900/30 px-3 py-1 rounded-full flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                                Sistema Activo
-                            </div>
-                        </div>
-                    </header>
-
-                    <main className="max-w-3xl mx-auto px-4 py-8">
-                        
-                        {/* Error Notification */}
-                        {error && (
-                            <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-r shadow-sm flex items-start gap-3 animate-fade-in">
-                                <IconAlert className="text-red-500 mt-1 w-5 h-5 flex-shrink-0" />
-                                <div>
-                                    <h3 className="font-bold text-red-700">Error detectado</h3>
-                                    <p className="text-red-600 text-sm">{error}</p>
-                                    <button onClick={resetApp} className="mt-2 text-sm font-semibold text-red-700 underline hover:text-red-800">
-                                        Intentar otra vez
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* UPLOAD SCREEN */}
-                        {!image && !loading && (
-                            <div className="animate-fade-in">
-                                <div 
-                                    className="flex flex-col items-center justify-center min-h-[400px] border-2 border-dashed border-slate-300 rounded-2xl bg-white hover:bg-slate-50 transition-all cursor-pointer group shadow-sm hover:shadow-md hover:border-blue-400"
-                                    onClick={() => fileInputRef.current?.click()}
-                                >
-                                    <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileUpload} />
-                                    
-                                    <div className="bg-blue-50 p-6 rounded-full mb-6 group-hover:bg-blue-100 group-hover:scale-110 transition-transform duration-300">
-                                        <IconCamera className="text-blue-600 w-12 h-12" />
-                                    </div>
-                                    <h2 className="text-2xl font-bold text-slate-800 mb-2">Analizar Coche</h2>
-                                    <p className="text-slate-500 max-w-sm text-center mb-8 px-4">
-                                        Sube una foto clara de tu coche de slot. <br/>
-                                        <span className="text-xs text-slate-400">(Soporta Scalextric, Ninco, Fly, etc.)</span>
-                                    </p>
-                                    <button className="px-8 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors flex items-center gap-2 shadow-lg hover:shadow-blue-500/30">
-                                        <IconUpload className="w-5 h-5" /> Subir Foto
-                                    </button>
-                                </div>
-
-                                <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-                                    {['Identificación de Marca', 'Tasación Aproximada', 'Búsqueda de Mercado'].map((feature, i) => (
-                                        <div key={i} className="bg-white p-4 rounded-lg shadow-sm border border-slate-100 text-sm text-slate-600 font-medium">
-                                            ✅ {feature}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* LOADING SCREEN */}
-                        {loading && (
-                            <div className="flex flex-col items-center justify-center min-h-[400px] bg-white rounded-2xl shadow-sm border border-slate-100 animate-fade-in">
-                                <div className="relative mb-8">
-                                    {image && (
-                                        <div className="relative">
-                                            <img src={image} alt="Procesando" className="w-40 h-40 object-cover rounded-2xl opacity-50 blur-sm" />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent opacity-50"></div>
-                                        </div>
-                                    )}
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <div className="bg-white p-3 rounded-full shadow-lg">
-                                            <IconLoader className="text-blue-600 w-10 h-10 animate-spin" />
-                                        </div>
-                                    </div>
-                                </div>
-                                <h3 className="text-xl font-bold text-slate-800">Consultando experto IA...</h3>
-                                <p className="text-slate-500 mt-2 text-sm animate-pulse">Analizando chasis, decoración y modelo</p>
-                            </div>
-                        )}
-
-                        {/* RESULTS SCREEN */}
-                        {result && image && (
-                            <div className="animate-fade-in space-y-6">
-                                
-                                {/* Top Card: Image + Main Info */}
-                                <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
-                                    <div className="md:flex">
-                                        <div className="md:w-1/2 bg-slate-100 flex items-center justify-center p-4">
-                                            <img src={image} alt="Coche analizado" className="max-h-64 rounded-lg shadow-md mix-blend-multiply" />
-                                        </div>
-                                        <div className="md:w-1/2 p-6 flex flex-col justify-center">
-                                            <div className="uppercase tracking-wider text-xs font-bold text-blue-600 mb-2">Resultado del Análisis</div>
-                                            <h2 className="text-2xl font-bold text-slate-900 leading-tight mb-2">{result.model}</h2>
-                                            <div className="flex flex-wrap gap-2 mb-4">
-                                                <span className="bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm font-semibold border border-slate-200">
-                                                    {result.brand}
-                                                </span>
-                                                {result.condition_note && (
-                                                    <span className="bg-yellow-50 text-yellow-700 px-3 py-1 rounded-full text-sm border border-yellow-100">
-                                                        {result.condition_note}
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <p className="text-slate-600 text-sm leading-relaxed mb-6">
-                                                {result.description}
-                                            </p>
-                                            <button 
-                                                onClick={resetApp}
-                                                className="self-start text-sm text-slate-500 hover:text-slate-800 flex items-center gap-1 transition-colors"
-                                            >
-                                                <IconRotate className="w-4 h-4" /> Analizar otro coche
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Price Card */}
-                                <div className="bg-gradient-to-r from-emerald-500 to-green-600 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
-                                    <div className="absolute right-0 top-0 p-4 opacity-20 transform translate-x-4 -translate-y-4">
-                                        <IconDollar className="w-32 h-32" />
-                                    </div>
-                                    <div className="relative z-10">
-                                        <h3 className="text-emerald-100 font-medium mb-1 flex items-center gap-2">
-                                            <IconInfo className="w-4 h-4" /> Valor Estimado de Mercado
-                                        </h3>
-                                        <div className="flex items-end gap-3 my-2">
-                                            <span className="text-5xl font-bold tracking-tight">
-                                                {result.estimated_price_low}-{result.estimated_price_high}€
-                                            </span>
-                                        </div>
-                                        <p className="text-emerald-100 text-xs opacity-90 max-w-md">
-                                            Rango basado en ventas recientes de modelos similares. El valor puede variar si incluye caja original (-20% si falta) o si tiene defectos no visibles.
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* Marketplace Links */}
-                                <div className="grid gap-4 sm:grid-cols-3">
-                                    {[
-                                        { name: 'Wallapop', id: 'wallapop', color: 'hover:border-emerald-400 hover:text-emerald-600' },
-                                        { name: 'eBay', id: 'ebay', color: 'hover:border-blue-400 hover:text-blue-600' },
-                                        { name: 'TodoColección', id: 'todocoleccion', color: 'hover:border-orange-400 hover:text-orange-600' }
-                                    ].map((market) => (
-                                        <a 
-                                            key={market.id}
-                                            href={getMarketplaceLink(market.id, result.search_query)}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className={`bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between group transition-all cursor-pointer ${market.color}`}
-                                        >
-                                            <span className="font-semibold text-slate-700 group-hover:text-inherit transition-colors">
-                                                Buscar en {market.name}
-                                            </span>
-                                            <IconExternalLink className="w-4 h-4 text-slate-300 group-hover:text-inherit transition-colors" />
-                                        </a>
-                                    ))}
-                                </div>
-
-                            </div>
-                        )}
-                    </main>
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-base sm:text-lg font-bold text-white flex items-center">
+                    <span class="bg-blue-600 text-[10px] px-2 py-0.5 rounded mr-2 shadow-lg">PASO 1</span> 
+                    CAPTURA
+                </h2>
+                <div id="statusDot" class="w-2 h-2 rounded-full bg-gray-600 animate-pulse"></div>
+            </div>
+            
+            <div id="initialOptions" class="grid grid-cols-2 gap-3">
+                <button id="cameraButton" class="col-span-2 py-8 bg-gray-800 active:bg-gray-700 border border-gray-600 rounded-xl transition flex flex-col items-center justify-center group touch-manipulation">
+                    <svg class="w-10 h-10 text-blue-400 mb-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <span class="text-sm font-bold tracking-wider text-blue-100">ABRIR CÁMARA</span>
+                </button>
+                
+                <input type="file" id="imageInput" accept="image/*" class="hidden">
+                <button id="uploadFileButton" class="col-span-2 py-4 bg-gray-800 active:bg-gray-700 border border-gray-600 rounded-xl transition flex items-center justify-center space-x-2 touch-manipulation">
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                    <span class="text-xs font-semibold text-gray-300">SUBIR DESDE GALERÍA</span>
+                </button>
+            </div>
+            
+            <div id="cameraSection" class="hidden flex flex-col items-center">
+                <div class="relative w-full rounded-xl overflow-hidden border-2 border-blue-500 shadow-2xl bg-black mb-4">
+                    <video id="cameraStream" autoplay playsinline muted></video>
+                    <canvas id="cameraCanvas" class="hidden"></canvas>
+                    <div class="absolute inset-0 border-2 border-white/20 pointer-events-none">
+                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-1/2 border border-white/40 rounded-lg"></div>
+                    </div>
                 </div>
-            );
+                <div class="grid grid-cols-2 gap-3 w-full">
+                    <button id="captureButton" class="py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg active:scale-95 transition text-sm">CAPTURAR</button>
+                    <button id="cancelCaptureButton" class="py-4 bg-red-900/80 text-red-200 font-bold rounded-xl border border-red-800 active:scale-95 transition text-sm">CANCELAR</button>
+                </div>
+            </div>
+
+            <div id="imagePreviewContainer" class="hidden fade-in">
+                <div class="relative group rounded-xl overflow-hidden border border-gray-600 bg-black aspect-video">
+                    <img id="imagePreview" class="w-full h-full object-contain" alt="Vista previa">
+                    <button id="changePhotoButton" class="absolute bottom-3 right-3 bg-black/80 text-white text-xs px-4 py-2 rounded-lg border border-white/20 active:bg-blue-600 transition shadow-lg backdrop-blur">Cambiar foto</button>
+                </div>
+            </div>
+
+            <div class="mt-5 pt-4 border-t border-gray-800">
+                <div class="flex justify-between items-center mb-4 px-1">
+                    <div class="flex items-center space-x-2">
+                         <span class="text-[10px] sm:text-xs text-gray-400 font-mono uppercase">Voz: <span id="voiceStatus" class="text-blue-400 font-bold">ON</span></span>
+                    </div>
+                    <div class="relative inline-block w-10 h-6 align-middle select-none transition duration-200 ease-in">
+                        <input type="checkbox" id="voiceToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer -top-0" checked/>
+                        <label for="voiceToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-700 cursor-pointer"></label>
+                    </div>
+                </div>
+
+                <button id="searchButton" onclick="startSearch()" class="neon-button w-full py-5 rounded-xl relative overflow-hidden group text-lg tracking-widest shadow-blue-900/20" disabled>
+                    <span id="buttonText" class="relative z-10 flex items-center justify-center gap-2">ESPERANDO IMAGEN</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Results Card -->
+        <div id="results-card" class="neon-card p-4 sm:p-6 rounded-2xl hidden fade-in">
+            <h2 class="text-base sm:text-lg font-bold text-white mb-4 flex items-center">
+                <span class="bg-green-600 text-[10px] px-2 py-0.5 rounded mr-2 shadow-lg">PASO 2</span> 
+                VALORACIÓN
+            </h2>
+            
+            <div id="loadingIndicator" class="text-center py-12 hidden">
+                <div class="flex justify-center items-center space-x-2 mb-4">
+                    <div class="w-2 h-8 bg-blue-500 animate-[bounce_1s_infinite]"></div>
+                    <div class="w-2 h-8 bg-blue-400 animate-[bounce_1.2s_infinite]"></div>
+                    <div class="w-2 h-8 bg-blue-300 animate-[bounce_1.4s_infinite]"></div>
+                </div>
+                <p id="loadingMessage" class="text-blue-400 text-xs font-mono uppercase animate-pulse">Analizando imagen...</p>
+            </div>
+
+            <!-- ID + Condition -->
+            <div id="carIdentification" class="mb-5 bg-gray-900/90 p-4 rounded-xl border-l-4 border-blue-500 hidden shadow-inner">
+                <h3 id="identifiedCar" class="text-lg font-black text-white leading-tight"></h3>
+                <div class="flex justify-between items-end mt-2">
+                    <p id="carBrand" class="text-xs text-blue-400 font-bold uppercase tracking-wide"></p>
+                    <span id="carCondition" class="text-[10px] bg-gray-800 px-2 py-1 rounded border border-gray-600 text-gray-300">Estado: --</span>
+                </div>
+            </div>
+
+            <!-- Precios -->
+            <div id="priceSummary" class="hidden fade-in mb-6">
+                
+                <!-- RECOMENDACIÓN -->
+                <div class="rec-box p-4 rounded-xl text-center mb-4 relative">
+                    <p class="text-[10px] text-yellow-400 font-bold uppercase tracking-widest mb-1 z-10 relative">Precio Recomendado</p>
+                    <p id="recPrice" class="text-4xl sm:text-5xl font-black text-white price-text z-10 relative my-2">--€</p>
+                    <p class="text-[10px] text-yellow-200/70 z-10 relative italic">Basado en el estado visual detectado</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <!-- Min -->
+                    <div class="stat-box min p-3 rounded-xl text-center">
+                        <div class="mb-2">
+                            <p class="text-[10px] text-green-400 font-bold uppercase tracking-wider">Mínimo</p>
+                            <p id="minPrice" class="text-xl sm:text-2xl font-black text-white price-text my-1">--€</p>
+                        </div>
+                        <a id="minLink" href="#" target="_blank" class="hidden w-full py-2 bg-green-900/40 hover:bg-green-800 text-green-300 text-[10px] font-bold rounded border border-green-700/50 transition">VER ANUNCIO</a>
+                    </div>
+                    <!-- Max -->
+                    <div class="stat-box max p-3 rounded-xl text-center">
+                        <div class="mb-2">
+                            <p class="text-[10px] text-red-400 font-bold uppercase tracking-wider">Máximo</p>
+                            <p id="maxPrice" class="text-xl sm:text-2xl font-black text-white price-text my-1">--€</p>
+                        </div>
+                        <a id="maxLink" href="#" target="_blank" class="hidden w-full py-2 bg-red-900/40 hover:bg-red-800 text-red-300 text-[10px] font-bold rounded border border-red-700/50 transition">VER ANUNCIO</a>
+                    </div>
+                </div>
+            </div>
+
+            <div id="priceResults">
+                <p id="noResults" class="text-gray-500 text-center py-6 text-sm hidden border border-dashed border-gray-700 rounded-xl bg-gray-900/50">
+                    Sin coincidencias exactas.
+                </p>
+                
+                <div id="sourcesContainer" class="hidden">
+                    <h4 class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-3 mt-6 border-t border-gray-800 pt-4 text-center">Detalle de Búsqueda</h4>
+                    <div id="sourcesList" class="space-y-3 max-h-80 overflow-y-auto custom-scroll pr-1"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info -->
+        <div class="mt-8 p-5 rounded-2xl border border-blue-900/30 bg-gray-900/40 text-center fade-in backdrop-blur-sm">
+            <div class="flex items-center justify-center space-x-2 mb-3">
+                <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <h3 class="text-blue-400 font-bold text-xs uppercase tracking-widest">SOBRE ESTA HERRAMIENTA</h3>
+            </div>
+            <p class="text-[11px] sm:text-xs text-gray-400 leading-relaxed text-justify px-2 font-light">
+                Slot Price Scout transforma tu dispositivo en un tasador profesional. 
+                Utilizamos IA para identificar el modelo y evaluar su <strong>estado de conservación</strong>.
+                Rastreamos en tiempo real <span class="text-blue-300 font-semibold">Wallapop, Vinted, eBay y Amazon</span>.
+                Te ofrecemos una valoración de mercado (Mínimo/Máximo) y un <strong>Precio Recomendado</strong> personalizado según si el coche está nuevo, usado o necesita restauración.
+            </p>
+        </div>
+
+        <!-- Error Alert -->
+        <div id="errorMessage" class="hidden fixed bottom-5 left-4 right-4 z-[100] p-4 bg-red-950/95 border border-red-500 text-white rounded-xl shadow-2xl backdrop-blur-md animate-bounce-in flex items-center">
+            <div class="mr-3 p-2 bg-red-900 rounded-full flex-shrink-0">⚠️</div>
+            <div class="flex-1">
+                <p class="font-bold text-xs uppercase text-red-400">Error del Sistema</p>
+                <p id="errorText" class="text-sm font-medium leading-tight"></p>
+            </div>
+            <button onclick="document.getElementById('errorMessage').classList.add('hidden')" class="ml-3 p-2 text-gray-400 hover:text-white bg-red-900/50 rounded-lg">✕</button>
+        </div>
+
+    </main>
+</div>
+
+<script>
+    // --- CLAVE API INCRUSTADA ---
+    const apiKey = "AIzaSyBxhtfeKb_sL92jfa-HhCsAlenoYkDCcSs"; 
+    const VMM_MODEL_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+    let state = {
+        image: null,
+        mimeType: null,
+        stream: null,
+        voices: []
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const els = {
+        imageInput: $('imageInput'),
+        preview: $('imagePreview'),
+        previewCont: $('imagePreviewContainer'),
+        initOpts: $('initialOptions'),
+        camSec: $('cameraSection'),
+        video: $('cameraStream'),
+        canvas: $('cameraCanvas'),
+        voiceTog: $('voiceToggle'),
+        searchBtn: $('searchButton'),
+        btnText: $('buttonText'),
+        resCard: $('results-card'),
+        loader: $('loadingIndicator'),
+        loadMsg: $('loadingMessage'),
+        errToast: $('errorMessage'),
+        errText: $('errorText'),
+        idCar: $('identifiedCar'),
+        idBrand: $('carBrand'),
+        idCond: $('carCondition'),
+        idSec: $('carIdentification'),
+        priceSec: $('priceSummary'),
+        recP: $('recPrice'),
+        minP: $('minPrice'),
+        maxP: $('maxPrice'),
+        minLink: $('minLink'),
+        maxLink: $('maxLink'),
+        srcList: $('sourcesList'),
+        srcCont: $('sourcesContainer'),
+        noRes: $('noResults')
+    };
+
+    const initVoice = () => {
+        if ('speechSynthesis' in window) {
+            state.voices = window.speechSynthesis.getVoices();
+            window.speechSynthesis.onvoiceschanged = () => state.voices = window.speechSynthesis.getVoices();
+        }
+    };
+
+    const speak = (txt) => {
+        if (!els.voiceTog.checked || !('speechSynthesis' in window)) return;
+        window.speechSynthesis.cancel();
+        const utt = new SpeechSynthesisUtterance(txt);
+        const voice = state.voices.find(v => v.lang === 'es-ES') || state.voices.find(v => v.lang.includes('es'));
+        if (voice) utt.voice = voice;
+        utt.rate = 1.05;
+        window.speechSynthesis.speak(utt);
+    };
+
+    const fileToB64 = (file) => new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.readAsDataURL(file);
+    });
+
+    const handleImage = async (fileBlob) => {
+        if (!fileBlob) return;
+        try {
+            if (els.preview.src.startsWith('blob:')) URL.revokeObjectURL(els.preview.src);
+            els.preview.src = URL.createObjectURL(fileBlob);
+            els.previewCont.classList.remove('hidden');
+            els.initOpts.classList.add('hidden');
+            els.camSec.classList.add('hidden');
+            els.resCard.classList.add('hidden');
+            
+            const file = fileBlob instanceof File ? fileBlob : new File([fileBlob], 'capture.jpg', { type: 'image/jpeg' });
+            state.image = await fileToB64(file);
+            state.mimeType = file.type;
+            
+            els.searchBtn.disabled = false;
+            els.btnText.textContent = "ANALIZAR MERCADO";
+            speak("Imagen cargada. Pulsa Analizar.");
+            
+            // Animación visual de éxito
+            $('statusDot').classList.remove('bg-gray-600', 'bg-red-500');
+            $('statusDot').classList.add('bg-green-500');
+            
+        } catch (e) { showError("Error al procesar imagen."); }
+    };
+
+    const showError = (msg) => {
+        speak("Error.");
+        els.errText.textContent = msg;
+        els.errToast.classList.remove('hidden');
+        els.loader.classList.add('hidden');
+        if (state.image) els.searchBtn.disabled = false;
+        setTimeout(() => els.errToast.classList.add('hidden'), 5000);
+    };
+
+    const startCam = async () => {
+        els.initOpts.classList.add('hidden');
+        els.previewCont.classList.add('hidden');
+        els.camSec.classList.remove('hidden');
+        if (state.stream) stopCam();
+        try {
+            // Intentar cámara trasera primero
+            state.stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: { exact: "environment" } } 
+            });
+            els.video.srcObject = state.stream;
+        } catch (e) {
+            try {
+                // Fallback a cualquier cámara disponible
+                state.stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                els.video.srcObject = state.stream;
+            } catch (err) { 
+                console.error(err);
+                resetUI(); 
+                showError("No se pudo acceder a la cámara. Revisa los permisos."); 
+            }
+        }
+    };
+
+    const stopCam = () => {
+        if (state.stream) {
+            state.stream.getTracks().forEach(t => t.stop());
+            els.video.srcObject = null;
+            state.stream = null;
+        }
+    };
+
+    const capture = () => {
+        if (!state.stream) return;
+        const ctx = els.canvas.getContext('2d');
+        els.canvas.width = els.video.videoWidth;
+        els.canvas.height = els.video.videoHeight;
+        ctx.drawImage(els.video, 0, 0);
+        stopCam();
+        els.canvas.toBlob(handleImage, 'image/jpeg', 0.85);
+    };
+
+    const resetUI = () => {
+        stopCam();
+        state.image = null;
+        els.imageInput.value = '';
+        els.initOpts.classList.remove('hidden');
+        els.camSec.classList.add('hidden');
+        els.previewCont.classList.add('hidden');
+        els.resCard.classList.add('hidden');
+        els.searchBtn.disabled = true;
+        els.btnText.innerText = "ESPERANDO IMAGEN";
+        $('statusDot').classList.remove('bg-green-500');
+        $('statusDot').classList.add('bg-gray-600');
+    };
+
+    // --- Lógica Principal ---
+    window.startSearch = async () => {
+        if (!state.image) return;
+        
+        els.resCard.classList.remove('hidden');
+        els.loader.classList.remove('hidden');
+        els.idSec.classList.add('hidden');
+        els.priceSec.classList.add('hidden');
+        els.noRes.classList.add('hidden');
+        els.srcCont.classList.add('hidden');
+        els.srcList.innerHTML = '';
+        els.searchBtn.disabled = true;
+        
+        els.resCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        speak("Analizando imagen...");
+
+        try {
+            // 1. Identificar y Estimar Estado
+            els.loadMsg.textContent = "IDENTIFICANDO MODELO Y ESTADO...";
+            const carInfo = await identifyCar(state.image);
+            
+            if (!carInfo.isSlotCar && !carInfo.model) {
+                // Intento de recuperación si la IA dice false pero detecta algo
+                if(carInfo.keywords) carInfo.isSlotCar = true; 
+                else throw new Error("No parece un coche de slot reconocido.");
+            }
+            
+            els.idCar.textContent = `${carInfo.model}`;
+            els.idBrand.textContent = `${carInfo.brand}`;
+            
+            const conditionText = carInfo.condition || "Usado";
+            els.idCond.textContent = `Estado Detectado: ${conditionText.toUpperCase()}`;
+            els.idSec.classList.remove('hidden');
+            
+            // 2. Buscar Precios
+            els.loadMsg.textContent = "BUSCANDO OFERTAS...";
+            const platforms = [
+                { name: "Wallapop / Vinted", query: `precio ${carInfo.keywords} wallapop vinted` },
+                { name: "eBay / Amazon", query: `buy ${carInfo.keywords} slot car ebay amazon price` },
+                { name: "Tiendas Oficiales", query: `precio ${carInfo.keywords} tienda slot online` }
+            ];
+
+            const results = await Promise.all(platforms.map(p => fetchPrices(p)));
+            
+            // Pasar la información del estado para el cálculo del precio
+            renderResults(results, carInfo, conditionText);
+
+        } catch (e) { 
+            console.error(e);
+            showError(e.message || "Error desconocido"); 
+        } 
+        finally { els.loader.classList.add('hidden'); els.searchBtn.disabled = false; }
+    };
+
+    const identifyCar = async (b64) => {
+        const prompt = `Analiza la imagen de este coche de slot. 
+        Devuelve JSON: 
+        {
+            "isSlotCar": true, 
+            "brand": "Marca", 
+            "model": "Modelo", 
+            "keywords": "marca modelo referencia",
+            "condition": "Estado visual estimado (Opciones: 'nuevo' (si parece en caja o perfecto), 'bueno' (usado normal), 'malo' (dañado o faltas))"
+        }. 
+        Si no es slot: {"isSlotCar": false}`;
+        
+        const payload = {
+            contents: [{ parts: [{ text: prompt }, { inlineData: { mimeType: state.mimeType, data: b64 } }] }],
+            generationConfig: { responseMimeType: "application/json" }
+        };
+        const res = await fetch(VMM_MODEL_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        if(!res.ok) throw new Error("Error conectando con IA (Identificación)");
+        const json = await res.json();
+        return JSON.parse(json.candidates[0].content.parts[0].text);
+    };
+
+    const fetchPrices = async (platform) => {
+        // ESTRATEGIA DUAL: Intenta buscar en internet. Si la Key no tiene permisos,
+        // usa el conocimiento interno de la IA (Fallback).
+        
+        const searchPrompt = `Busca precios en EUR para "${platform.query}". Lista 3 precios concretos encontrados.`;
+        const fallbackPrompt = `Estima 3 precios realistas en EUR para "${platform.query}" basándote en tu conocimiento de mercado de segunda mano. Formato texto libre con precios.`;
+
+        // Intento 1: Con herramienta Google Search
+        const payloadWithTools = {
+            contents: [{ parts: [{ text: searchPrompt }] }],
+            tools: [{ "google_search": {} }]
+        };
+
+        // Intento 2: Solo IA (sin buscar fuera)
+        const payloadFallback = {
+            contents: [{ parts: [{ text: fallbackPrompt }] }]
+        };
+
+        try {
+            // Intentar con Search Grounding
+            const res = await fetch(VMM_MODEL_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payloadWithTools) });
+            const json = await res.json();
+            
+            // Si hay error de permisos (400/403) o no hay candidatos, lanzar error para ir al catch
+            if (!res.ok || !json.candidates) throw new Error("Grounding falló");
+
+            return { 
+                platform: platform.name, 
+                text: json.candidates?.[0]?.content?.parts?.[0]?.text || "", 
+                sources: json.candidates?.[0]?.groundingMetadata?.groundingAttributions || [] 
+            };
+        } catch (e) {
+            console.warn(`Fallo búsqueda real para ${platform.name}, usando conocimiento IA...`);
+            // Fallback: Usar solo IA
+            try {
+                const res = await fetch(VMM_MODEL_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payloadFallback) });
+                const json = await res.json();
+                return { 
+                    platform: platform.name + " (Est. IA)", 
+                    text: json.candidates?.[0]?.content?.parts?.[0]?.text || "", 
+                    sources: [] // Sin fuentes externas reales
+                };
+            } catch (err2) {
+                return { platform: platform.name, text: null, sources: [] };
+            }
+        }
+    };
+
+    const renderResults = (results, carInfo, condition) => {
+        let priceData = [];
+        let htmlSources = '';
+        // Regex mejorado para capturar precios
+        const regex = /(?:€\s?|EUR\s?)(\d+[\.,]?\d*)|(\d+[\.,]?\d*)\s?(?:€|EUR)/gi;
+
+        results.forEach(res => {
+            if (!res.text) return;
+            let primaryLink = res.sources.length > 0 ? res.sources[0].web.uri : null;
+            let match;
+            let found = false;
+            while ((match = regex.exec(res.text)) !== null) {
+                let val = parseFloat((match[1] || match[2]).replace(',', '.'));
+                // Filtros de cordura (ni muy barato ni absurdo)
+                if (!isNaN(val) && val > 5 && val < 2000) {
+                    priceData.push({ value: val, link: primaryLink });
+                    found = true;
+                }
+            }
+            // Mostrar texto si se encontró algo o si hay fuentes
+            if (res.text.length > 5) {
+                const links = res.sources.map(s => s.web?.uri ? `<a href="${s.web.uri}" target="_blank" class="text-blue-400 underline block truncate text-[10px] mt-1 p-1 bg-gray-900 rounded hover:text-white">🔗 ${s.web.title}</a>` : '').slice(0, 2).join('');
+                htmlSources += `<div class="bg-gray-800 p-3 rounded-lg border-l-2 border-blue-600 shadow-md mb-2"><h5 class="font-bold text-gray-300 text-xs">${res.platform}</h5><p class="text-[10px] text-gray-400 mb-1 leading-snug">${res.text.replace(/\*/g, '').substring(0, 120)}...</p>${links}</div>`;
+            }
+        });
+
+        if (priceData.length > 0) {
+            priceData.sort((a, b) => a.value - b.value);
+            
+            // Eliminar outliers extremos si hay suficientes datos
+            if(priceData.length > 4) {
+                priceData = priceData.slice(1, -1);
+            }
+            
+            const minVal = priceData[0].value;
+            const maxVal = priceData[priceData.length - 1].value;
+            const minLink = priceData[0].link;
+            const maxLink = priceData[priceData.length - 1].link;
+
+            // --- Lógica de Recomendación ---
+            let recPrice = 0;
+            const avg = (minVal + maxVal) / 2;
+            
+            if (condition.toLowerCase().includes('nuevo')) {
+                // Nuevo: Cerca del máximo
+                recPrice = maxVal * 0.95;
+            } else if (condition.toLowerCase().includes('bueno')) {
+                // Bueno: Promedio
+                recPrice = avg;
+            } else {
+                // Malo: Cerca del mínimo
+                recPrice = minVal * 1.1;
+            }
+            recPrice = Math.round(recPrice);
+
+            // Update UI
+            els.minP.textContent = `${minVal}€`;
+            els.maxP.textContent = `${maxVal}€`;
+            els.recP.textContent = `${recPrice}€`; // Highlight
+
+            const setupLink = (el, link) => {
+                if (link) { el.href = link; el.classList.remove('hidden'); el.classList.add('inline-block'); } 
+                else { el.classList.add('hidden'); }
+            };
+            setupLink(els.minLink, minLink);
+            setupLink(els.maxLink, maxLink);
+
+            els.priceSec.classList.remove('hidden');
+
+            // --- Narración Completa ---
+            const speech = `He identificado un ${carInfo.brand} ${carInfo.model}. 
+                           Precios encontrados entre ${minVal} y ${maxVal} euros. 
+                           Valoración recomendada: ${recPrice} euros.`;
+            speak(speech);
+
+        } else {
+            els.noRes.classList.remove('hidden');
+            speak(`Identificado ${carInfo.model}, pero no tengo suficientes datos de precio.`);
         }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
+        if (htmlSources) {
+            els.srcList.innerHTML = htmlSources;
+            els.srcCont.classList.remove('hidden');
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        initVoice();
+        $('cameraButton').onclick = startCam;
+        $('captureButton').onclick = capture;
+        $('cancelCaptureButton').onclick = resetUI;
+        $('uploadFileButton').onclick = () => els.imageInput.click();
+        $('changePhotoButton').onclick = resetUI;
+        $('voiceToggle').onchange = (e) => { $('voiceStatus').textContent = e.target.checked ? 'ON' : 'OFF'; };
+        els.imageInput.onchange = (e) => handleImage(e.target.files[0]);
+        resetUI();
+    });
+</script>
 </body>
 </html>
