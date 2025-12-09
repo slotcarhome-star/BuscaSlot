@@ -2,439 +2,623 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Slot Price Scout | Mobile Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slot Price Scout | Solo Precio</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&display=swap');
-        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&display=swap');
-        
         body { 
-            font-family: 'Rajdhani', sans-serif; 
+            font-family: 'Orbitron', sans-serif; 
             background-color: #050718; 
             color: #d1d5db; 
-            overflow-x: hidden;
-            -webkit-tap-highlight-color: transparent;
         }
 
-        h1, h2, h3, .brand-font { font-family: 'Orbitron', sans-serif; }
-
         :root {
-            --neon-blue: #3b82f6;
-            --neon-cyan: #06b6d4;
-            --wallapop: #13c1ac;
-            --ebay: #e53238;
-            --vinted: #007782;
+            --neon-color: #3b82f6;
+            --neon-shadow: 0 0 8px rgba(59, 130, 246, 0.8), 0 0 16px rgba(59, 130, 246, 0.5);
+            --neon-deep-shadow: 0 0 15px rgba(59, 130, 246, 0.7), 0 0 30px rgba(59, 130, 246, 0.4);
         }
 
         .neon-title {
-            color: #fff; 
-            text-shadow: 0 0 5px var(--neon-blue), 0 0 10px var(--neon-cyan); 
-            letter-spacing: 0.05em;
+            color: #dbeafe; 
+            text-shadow: 0 0 4px var(--neon-color), 0 0 8px #93c5fd; 
+            letter-spacing: 0.1em;
         }
 
         .neon-card {
-            background: rgba(17, 24, 39, 0.95);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            box-shadow: 0 0 20px rgba(37, 99, 235, 0.15);
-            backdrop-filter: blur(10px);
+            background-color: #111827; 
+            border: 2px solid var(--neon-color);
+            box-shadow: var(--neon-shadow);
+            transition: all 0.3s ease-in-out;
+        }
+        .neon-card:hover {
+            box-shadow: var(--neon-deep-shadow);
         }
 
-        .btn-action {
-            background: linear-gradient(90deg, #2563eb, #06b6d4);
-            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
+        .neon-button {
+            background-color: var(--neon-color);
+            color: #111827;
+            font-weight: 700;
+            box-shadow: 0 0 5px rgba(59, 130, 246, 0.8), 0 0 15px rgba(59, 130, 246, 0.6);
             transition: all 0.2s;
         }
-        .btn-action:active { transform: scale(0.97); }
-
-        .market-btn {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 14px 16px;
-            border-radius: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-            font-size: 0.95rem;
-            transition: transform 0.2s;
-            margin-bottom: 12px;
-            border: 1px solid rgba(255,255,255,0.1);
-            text-decoration: none;
+        .neon-button:hover:not(:disabled) {
+            background-color: #60a5fa;
+            transform: translateY(-2px);
+            box-shadow: var(--neon-deep-shadow);
         }
-        .market-btn:active { transform: scale(0.98); filter: brightness(0.9); }
-        
-        .btn-walla { background: linear-gradient(45deg, #13c1ac 0%, #0e8c7d 100%); color: white; }
-        .btn-ebay { background: linear-gradient(45deg, #e53238 0%, #b91c22 100%); color: white; }
-        .btn-google { background: linear-gradient(45deg, #4285F4 0%, #3367D6 100%); color: white; }
+        .neon-button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .neon-stat-box {
+            background-color: #1e293b; 
+            border: 3px solid #38bdf8;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.9), inset 0 0 5px rgba(56, 189, 248, 0.5);
+        }
+        .neon-price {
+            color: #38bdf8;
+            text-shadow: 0 0 5px #0ea5e9, 0 0 15px #0ea5e9;
+        }
+
+        /* Toggle Switch para Voz */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #3b82f6;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #3b82f6;
+        }
 
         #cameraStream {
-            width: 100%; height: 60vh; max-height: 400px;
-            object-fit: cover; background: #000; border-radius: 1rem;
+            width: 100%;
+            aspect-ratio: 4/3; 
+            object-fit: cover;
         }
+        #cameraCanvas { display: none; }
         
-        .fade-in { animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-        .loader {
-            width: 48px; height: 48px;
-            border: 5px solid #FFF;
-            border-bottom-color: var(--neon-blue);
-            border-radius: 50%;
-            display: inline-block;
-            box-sizing: border-box;
-            animation: rotation 1s linear infinite;
-        }
-        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-<div id="app" class="min-h-screen flex flex-col items-center w-full p-3 pb-12 relative overflow-hidden">
-    
-    <!-- Background Elements -->
-    <div class="fixed top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/10 rounded-full blur-[100px] pointer-events-none"></div>
-    <div class="fixed bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-cyan-600/10 rounded-full blur-[100px] pointer-events-none"></div>
+<div id="app" class="min-h-screen flex flex-col items-center p-4">
 
-    <!-- Header -->
-    <header class="w-full max-w-lg py-4 mb-2 text-center z-10">
-        <h1 class="text-3xl font-black mb-0 neon-title italic">SLOT SCOUT <span class="text-xs align-top bg-blue-600 px-1 rounded text-white not-italic font-sans">PRO</span></h1>
-        <p class="text-[10px] text-gray-400 font-mono tracking-[0.3em] uppercase opacity-70">Identification System</p>
+    <!-- Header / Título -->
+    <header class="w-full max-w-lg p-6 mb-8 text-center rounded-2xl shadow-xl">
+        <h1 class="text-4xl font-extrabold mb-1 neon-title">SLOT PRICE SCOUT</h1>
+        <p class="text-sm opacity-70">VALORACIÓN DE MERCADO RÁPIDA</p>
     </header>
 
-    <!-- Main Interface -->
-    <main class="w-full max-w-lg space-y-4 flex-grow z-10">
+    <!-- Main Content Area -->
+    <main class="w-full max-w-lg">
 
-        <!-- Initial State: Camera/Upload -->
-        <div id="input-card" class="neon-card p-5 rounded-3xl relative overflow-hidden">
+        <!-- Image Upload/Preview Card -->
+        <div id="upload-card" class="neon-card p-6 rounded-2xl mb-6">
+            <h2 class="text-xl font-bold text-blue-300 mb-4">1. INSERCIÓN DE DATOS</h2>
             
-            <!-- Viewfinder / Preview -->
-            <div id="visualizer" class="relative bg-black rounded-2xl overflow-hidden aspect-[4/3] border border-gray-800 shadow-inner mb-5 group">
-                <!-- Video Stream -->
-                <video id="cameraStream" class="hidden w-full h-full object-cover" autoplay playsinline muted></video>
-                <canvas id="cameraCanvas" class="hidden"></canvas>
-                
-                <!-- Static Image Preview -->
-                <img id="imagePreview" class="hidden w-full h-full object-contain" alt="Vista previa">
-                
-                <!-- Placeholder / Start Screen -->
-                <div id="startScreen" class="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
-                    <svg class="w-16 h-16 mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    <span class="text-xs uppercase tracking-widest font-bold">Selecciona una imagen</span>
-                </div>
-
-                <!-- Overlay UI when Camera Active -->
-                <div id="cameraOverlay" class="hidden absolute inset-0 pointer-events-none">
-                    <div class="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-cyan-400 m-4 rounded-tl-lg"></div>
-                    <div class="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-cyan-400 m-4 rounded-tr-lg"></div>
-                    <div class="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-cyan-400 m-4 rounded-bl-lg"></div>
-                    <div class="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-cyan-400 m-4 rounded-br-lg"></div>
-                </div>
-            </div>
-
-            <!-- Controls -->
-            <div id="controls" class="grid grid-cols-2 gap-3">
-                <!-- Main Camera Button -->
-                <button id="btnCamera" class="col-span-2 py-4 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl flex items-center justify-center gap-2 transition active:scale-95">
-                    <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    <span class="text-sm font-bold text-white tracking-wide">USAR CÁMARA</span>
+            <div id="initialOptions" class="space-y-4">
+                <button id="cameraButton" class="w-full py-3 bg-blue-700 text-white font-semibold rounded-xl hover:bg-blue-600 transition duration-300 flex items-center justify-center space-x-2 shadow-md hover:shadow-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <span>CAPTURA DE CÁMARA (MOBILE)</span>
                 </button>
                 
-                <!-- Gallery Input (Hidden) -->
-                <input type="file" id="fileInput" accept="image/*" class="hidden">
-                <button id="btnGallery" class="col-span-2 py-3 bg-transparent border border-gray-700 rounded-xl flex items-center justify-center gap-2 text-gray-400 text-xs font-bold hover:text-white transition active:scale-95">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                    SUBIR FOTO
+                <input type="file" id="imageInput" accept="image/*" class="hidden">
+                <button id="uploadFileButton" class="w-full py-3 bg-gray-700 text-gray-200 font-semibold rounded-xl hover:bg-gray-600 transition duration-300 flex items-center justify-center space-x-2 shadow-md hover:shadow-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                    <span>SUBIR ARCHIVO</span>
                 </button>
-
-                <!-- Capture Actions (Hidden initially) -->
-                <button id="btnCapture" class="hidden col-span-2 py-4 bg-blue-600 text-white rounded-xl font-bold tracking-widest shadow-lg active:scale-95 animate-pulse">
-                    CAPTURAR
-                </button>
-            </div>
-
-            <!-- Analyze Button -->
-            <div id="analyzeSection" class="hidden mt-4 pt-4 border-t border-gray-800">
-                <button id="btnAnalyze" class="w-full py-5 btn-action rounded-xl text-white font-black text-lg tracking-widest relative overflow-hidden group">
-                    <span class="relative z-10 flex items-center justify-center gap-2">
-                        ANALIZAR COCHE
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                    </span>
-                    <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-                </button>
-                <button id="btnReset" class="w-full mt-2 py-2 text-xs text-gray-500 hover:text-white underline">Nueva búsqueda</button>
-            </div>
-        </div>
-
-        <!-- Loading State -->
-        <div id="loadingCard" class="hidden neon-card p-8 rounded-3xl text-center fade-in">
-            <span class="loader mb-4"></span>
-            <h3 class="text-xl font-bold text-white mb-1">PROCESANDO</h3>
-            <p id="loadingText" class="text-blue-400 text-xs font-mono animate-pulse">Identificando modelo...</p>
-        </div>
-
-        <!-- Result Card -->
-        <div id="resultCard" class="hidden neon-card rounded-3xl overflow-hidden fade-in border-t-4 border-t-cyan-400">
-            <!-- Car Info -->
-            <div class="p-6 bg-gradient-to-b from-gray-900 to-gray-900/90">
-                <div class="flex justify-between items-start mb-2">
-                    <span id="resBrand" class="text-cyan-400 font-bold text-xs tracking-widest uppercase bg-cyan-900/20 px-2 py-1 rounded border border-cyan-800">MARCA</span>
-                    <span id="resRef" class="text-gray-500 font-mono text-[10px]">#REF</span>
-                </div>
-                <h2 id="resModel" class="text-2xl sm:text-3xl font-black text-white leading-tight mb-2 uppercase italic">MODELO DETECTADO</h2>
-                <p id="resDesc" class="text-gray-400 text-sm leading-snug border-l-2 border-gray-700 pl-3 italic">Descripción breve...</p>
-            </div>
-
-            <!-- Market Estimate (Static AI) -->
-            <div class="px-6 py-4 border-t border-gray-800 bg-black/40 flex items-center justify-between">
-                <div>
-                    <p class="text-[10px] text-gray-400 uppercase font-bold">Valoración Aprox.</p>
-                    <p class="text-[10px] text-gray-600 italic">(Estado detectado por IA)</p>
-                </div>
-                <div class="text-right">
-                    <span id="resPrice" class="text-2xl font-bold text-white">-- €</span>
-                </div>
-            </div>
-
-            <!-- Direct Search Buttons -->
-            <div class="p-5 bg-gray-900 border-t border-gray-800">
-                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 text-center">— VER PRECIO REAL DE MERCADO —</h3>
-                
-                <a id="linkWallapop" href="#" target="_blank" class="market-btn btn-walla">
-                    <span>Wallapop</span>
-                    <svg class="w-5 h-5 opacity-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-                </a>
-                
-                <a id="linkEbay" href="#" target="_blank" class="market-btn btn-ebay">
-                    <span>eBay España</span>
-                    <svg class="w-5 h-5 opacity-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
-                </a>
-
-                <a id="linkGoogle" href="#" target="_blank" class="market-btn btn-google">
-                    <span>Google Shopping</span>
-                    <svg class="w-5 h-5 opacity-90" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                </a>
             </div>
             
-            <div class="bg-gray-950 p-3 text-center">
-                 <button id="btnReset2" class="text-xs text-gray-500 hover:text-white underline py-2 w-full">Analizar otro coche</button>
+            <div id="cameraSection" class="hidden">
+                <p class="text-sm text-center text-red-400 mb-2 font-medium" id="cameraError"></p>
+                <div class="relative w-full rounded-xl overflow-hidden border-2 border-blue-500">
+                    <video id="cameraStream" autoplay playsinline class="rounded-xl"></video>
+                    <canvas id="cameraCanvas"></canvas>
+                </div>
+                <div class="flex space-x-2 mt-4">
+                    <button id="captureButton" class="flex-grow py-3 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600 transition duration-300 shadow-md">TOMAR FOTO</button>
+                    <button id="cancelCaptureButton" class="py-3 px-6 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition duration-300 shadow-md">CANCELAR</button>
+                </div>
+            </div>
+
+            <div id="imagePreviewContainer" class="mt-4 hidden">
+                <img id="imagePreview" class="w-full h-auto max-h-64 object-contain rounded-xl border-2 border-gray-700 shadow-xl" alt="Vista previa del coche de slot">
+                <button id="changePhotoButton" class="mt-3 w-full py-2 bg-yellow-600 text-gray-900 font-semibold rounded-xl hover:bg-yellow-500 transition duration-300 shadow-md">CAMBIAR FOTO</button>
+            </div>
+
+            <!-- Controles de Voz y Búsqueda -->
+            <div class="mt-6 border-t border-gray-700 pt-4">
+                <!-- Toggle de Voz -->
+                <div class="flex items-center justify-between mb-3 px-1">
+                    <div class="flex items-center space-x-2">
+                         <span class="text-sm text-blue-300 font-semibold">NARRACIÓN DE VOZ</span>
+                         <!-- Botón de Test de Audio -->
+                         <button id="testVoiceBtn" class="px-2 py-1 text-xs bg-gray-700 rounded text-blue-200 hover:bg-gray-600">TEST</button>
+                    </div>
+                   
+                    <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                        <input type="checkbox" name="toggle" id="voiceToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" checked/>
+                        <label for="voiceToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-600 cursor-pointer"></label>
+                    </div>
+                </div>
+
+                <!-- Botón de Búsqueda -->
+                <button id="searchButton" onclick="startSearch()" class="neon-button w-full py-3 font-bold rounded-2xl opacity-50 cursor-not-allowed" disabled>
+                    <span id="buttonText">INICIAR BÚSQUEDA (Coche no seleccionado)</span>
+                </button>
             </div>
         </div>
-        
-        <!-- Error Message -->
-        <div id="errorToast" class="hidden fixed bottom-4 left-4 right-4 bg-red-900/95 border border-red-500 text-white p-4 rounded-xl shadow-2xl z-50 text-sm font-medium backdrop-blur flex items-center animate-bounce">
-            <span class="mr-3 text-xl">⚠️</span>
-            <span id="errorMsg">Ha ocurrido un error.</span>
+
+        <!-- Results Card -->
+        <div id="results-card" class="neon-card p-6 rounded-2xl hidden">
+            <h2 class="text-xl font-bold text-blue-300 mb-4">2. VALORACIÓN DE MERCADO</h2>
+            
+            <div id="loadingIndicator" class="text-center py-8 hidden">
+                <svg class="animate-spin h-8 w-8 text-blue-400 mx-auto mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p id="loadingMessage" class="text-blue-400 font-medium mb-4">ANALIZANDO IMAGEN Y RASTREANDO PRECIOS...</p>
+            </div>
+
+            <div id="carIdentification" class="mb-6 p-4 bg-gray-800 rounded-xl hidden border border-blue-500">
+                <p class="text-sm font-semibold text-blue-400">COCHE IDENTIFICADO:</p>
+                <p id="identifiedCar" class="text-2xl font-extrabold text-white neon-title"></p>
+                <p id="carKeywords" class="text-xs text-gray-400 mt-1 italic"></p>
+            </div>
+
+            <div id="priceSummary" class="mb-6 hidden">
+                <h3 class="text-lg font-bold text-blue-300 mb-3 border-b border-blue-800 pb-2">PRECIO ESTIMADO</h3>
+                
+                <div class="flex justify-center text-center">
+                    <div class="neon-stat-box p-6 rounded-2xl w-full max-w-sm">
+                        <p class="text-md font-light text-blue-300">PRECIO DE MERCADO PROMEDIO</p>
+                        <p id="avgPrice" class="neon-price text-5xl font-extrabold mt-2">N/A</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="priceResults">
+                <p id="noResults" class="text-gray-400 text-center py-4 hidden">NO SE PUDIERON EXTRAER PRECIOS EXACTOS.</p>
+                <h4 id="sourcesTitle" class="text-md font-semibold text-blue-400 mb-2 border-t border-blue-800 pt-4 hidden">DETALLE DE FUENTES Y LISTINGS:</h4>
+                <div id="sourcesList" class="space-y-3">
+                    <!-- Detailed search results -->
+                </div>
+            </div>
         </div>
 
+        <div id="errorMessage" class="hidden mt-4 p-4 bg-red-900 border border-red-400 text-red-300 rounded-xl" role="alert">
+            <p class="font-bold">ERROR CRÍTICO:</p>
+            <p id="errorText"></p>
+        </div>
     </main>
 </div>
 
-<script>
-    // ==========================================
-    // ¡¡¡ ACTIVADO !!! 
-    // ==========================================
-    const apiKey = "AIzaSyBIebVB0kcMhea9z1-W4sB9ARJ5zp7VSYk";
-    // ==========================================
+<script type="module">
+    // --- Configuración de API y Utilidades ---
+    const apiKey = ""; 
+    const VMM_MODEL_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
-    const MODEL = "gemini-1.5-flash"; 
+    let base64Image = null;
+    let imageMimeType = null; 
+    let mediaStream = null; 
 
-    // State
-    let stream = null;
-    let imageBase64 = null;
+    // Referencias DOM
+    let imageInputEl, imagePreviewEl, imagePreviewContainerEl, searchButtonEl, buttonTextEl, resultsCardEl;
+    let loadingIndicatorEl, loadingMessageEl, errorMessageEl, errorTextEl;
+    let carIdentificationEl, identifiedCarEl, carKeywordsEl;
+    let initialOptionsEl, cameraSectionEl, cameraStreamEl, cameraCanvasEl, captureButtonEl, changePhotoButtonEl, cameraErrorEl;
+    let priceSummaryEl, avgPriceEl, noResultsEl, sourcesListEl, sourcesTitleEl;
+    let voiceToggleEl, testVoiceBtnEl;
 
-    // DOM Elements
-    const $ = (id) => document.getElementById(id);
-    const els = {
-        video: $('cameraStream'),
-        canvas: $('cameraCanvas'),
-        preview: $('imagePreview'),
-        visualizer: $('visualizer'),
-        startScreen: $('startScreen'),
-        camOverlay: $('cameraOverlay'),
-        
-        btnCam: $('btnCamera'),
-        btnGal: $('btnGallery'),
-        fileIn: $('fileInput'),
-        btnCap: $('btnCapture'),
-        
-        sectionAnalyze: $('analyzeSection'),
-        btnAnalyze: $('btnAnalyze'),
-        btnReset: $('btnReset'),
-        btnReset2: $('btnReset2'),
-        
-        loading: $('loadingCard'),
-        result: $('resultCard'),
-        inputCard: $('input-card'),
-        
-        brand: $('resBrand'),
-        model: $('resModel'),
-        ref: $('resRef'),
-        desc: $('resDesc'),
-        price: $('resPrice'),
-        
-        lWalla: $('linkWallapop'),
-        lEbay: $('linkEbay'),
-        lGoogle: $('linkGoogle'),
-        
-        error: $('errorToast'),
-        errorMsg: $('errorMsg')
-    };
-
-    // --- Camera & Image Handling ---
-
-    els.btnCam.onclick = async () => {
-        try {
-            els.startScreen.classList.add('hidden');
-            els.preview.classList.add('hidden');
-            els.video.classList.remove('hidden');
-            els.camOverlay.classList.remove('hidden');
-            
-            stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: "environment" } 
-            });
-            els.video.srcObject = stream;
-            
-            els.btnCam.classList.add('hidden');
-            els.btnGal.classList.add('hidden');
-            els.btnCap.classList.remove('hidden');
-        } catch (e) {
-            showError("No se pudo acceder a la cámara. Revisa permisos.");
-        }
-    };
-
-    els.btnCap.onclick = () => {
-        if (!stream) return;
-        const ctx = els.canvas.getContext('2d');
-        els.canvas.width = els.video.videoWidth;
-        els.canvas.height = els.video.videoHeight;
-        ctx.drawImage(els.video, 0, 0);
-        
-        stream.getTracks().forEach(t => t.stop());
-        stream = null;
-        
-        els.video.srcObject = null;
-        els.video.classList.add('hidden');
-        els.camOverlay.classList.add('hidden');
-        
-        const dataUrl = els.canvas.toDataURL('image/jpeg', 0.8);
-        showImagePreview(dataUrl);
-    };
-
-    els.btnGal.onclick = () => els.fileIn.click();
+    // --- SETUP DE VOZ ---
+    let voices = [];
     
-    els.fileIn.onchange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (e) => showImagePreview(e.target.result);
-            reader.readAsDataURL(file);
+    function loadVoices() {
+        if ('speechSynthesis' in window) {
+            voices = window.speechSynthesis.getVoices();
+            console.log("Voces cargadas:", voices.length);
         }
-    };
-
-    function showImagePreview(url) {
-        els.preview.src = url;
-        els.preview.classList.remove('hidden');
-        els.startScreen.classList.add('hidden');
-        els.video.classList.add('hidden');
-        
-        els.btnCam.classList.add('hidden');
-        els.btnGal.classList.add('hidden');
-        els.btnCap.classList.add('hidden');
-        els.sectionAnalyze.classList.remove('hidden');
-        
-        imageBase64 = url.split(',')[1];
     }
 
-    const resetApp = () => location.reload();
-    els.btnReset.onclick = resetApp;
-    els.btnReset2.onclick = resetApp;
+    function setupDOMElements() {
+        imageInputEl = document.getElementById('imageInput');
+        imagePreviewEl = document.getElementById('imagePreview');
+        imagePreviewContainerEl = document.getElementById('imagePreviewContainer');
+        searchButtonEl = document.getElementById('searchButton');
+        buttonTextEl = document.getElementById('buttonText');
+        resultsCardEl = document.getElementById('results-card');
+        loadingIndicatorEl = document.getElementById('loadingIndicator');
+        loadingMessageEl = document.getElementById('loadingMessage');
+        errorMessageEl = document.getElementById('errorMessage');
+        errorTextEl = document.getElementById('errorText');
+        carIdentificationEl = document.getElementById('carIdentification');
+        identifiedCarEl = document.getElementById('identifiedCar');
+        carKeywordsEl = document.getElementById('carKeywords');
+        initialOptionsEl = document.getElementById('initialOptions');
+        cameraSectionEl = document.getElementById('cameraSection');
+        cameraStreamEl = document.getElementById('cameraStream');
+        cameraCanvasEl = document.getElementById('cameraCanvas');
+        captureButtonEl = document.getElementById('captureButton');
+        cameraErrorEl = document.getElementById('cameraError');
+        changePhotoButtonEl = document.getElementById('changePhotoButton');
+        priceSummaryEl = document.getElementById('priceSummary');
+        avgPriceEl = document.getElementById('avgPrice'); 
+        noResultsEl = document.getElementById('noResults');
+        sourcesListEl = document.getElementById('sourcesList');
+        sourcesTitleEl = document.getElementById('sourcesTitle');
+        voiceToggleEl = document.getElementById('voiceToggle');
+        testVoiceBtnEl = document.getElementById('testVoiceBtn');
+    }
 
-    // --- AI Processing ---
+    // --- UTILIDAD DE VOZ (TTS) MEJORADA ---
+    function speak(text) {
+        if (!voiceToggleEl.checked || !('speechSynthesis' in window)) return;
 
-    els.btnAnalyze.onclick = async () => {
-        if (!apiKey) {
-            showError("Falta la API Key en el código. Lee las instrucciones.");
+        // Cancelar cola anterior
+        window.speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        
+        // Estrategia de selección de voz:
+        // 1. Buscar voz 'es-ES' (España)
+        // 2. Si no, buscar cualquier 'es' (México, etc.)
+        // 3. Si no, dejar la por defecto
+        
+        // Recargar voces por si acaso
+        if (voices.length === 0) voices = window.speechSynthesis.getVoices();
+
+        const spanishVoice = voices.find(v => v.lang === 'es-ES') || voices.find(v => v.lang.includes('es'));
+        
+        if (spanishVoice) {
+            utterance.voice = spanishVoice;
+            utterance.lang = spanishVoice.lang;
+        } else {
+            utterance.lang = 'es-ES'; // Intentar forzar idioma aunque sea con voz default
+        }
+
+        utterance.rate = 1.1; 
+        utterance.pitch = 1.0; 
+        
+        console.log(`[VOZ] Hablando: "${text}" usando voz: ${spanishVoice ? spanishVoice.name : 'Default'}`);
+        window.speechSynthesis.speak(utterance);
+    }
+
+    // --- MANEJO DE ARCHIVOS ---
+    function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const result = reader.result;
+                const parts = result.split(',');
+                if (parts.length > 1 && parts[1]) resolve(parts[1]);
+                else reject(new Error("Error Base64."));
+            };
+            reader.onerror = error => reject(error);
+            reader.readAsDataURL(file);
+        });
+    }
+    
+    async function processMedia(media) {
+        if (!media) return;
+        let previewUrl = null;
+        try {
+            previewUrl = URL.createObjectURL(media);
+            if (imagePreviewEl) {
+                if (imagePreviewEl.src && imagePreviewEl.src.startsWith('blob:')) URL.revokeObjectURL(imagePreviewEl.src); 
+                imagePreviewEl.src = previewUrl; 
+            }
+            if (imagePreviewContainerEl) imagePreviewContainerEl.classList.remove('hidden');
+            if (initialOptionsEl) initialOptionsEl.classList.add('hidden');
+            if (cameraSectionEl) cameraSectionEl.classList.add('hidden');
+            if (resultsCardEl) resultsCardEl.classList.add('hidden');
+            if (errorMessageEl) errorMessageEl.classList.add('hidden');
+        } catch (error) { return; }
+
+        try {
+            const file = media instanceof File ? media : new File([media], 'captured_image.png', { type: 'image/png' });
+            base64Image = await fileToBase64(file);
+            imageMimeType = file.type; 
+            if (searchButtonEl) {
+                searchButtonEl.disabled = false;
+                searchButtonEl.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+            if (buttonTextEl) buttonTextEl.textContent = 'INICIAR BÚSQUEDA';
+        } catch (error) {
+            showError("Error al procesar imagen.");
+        }
+    }
+
+    function showError(message) {
+        speak("Atención. Error detectado.");
+        if (errorTextEl) errorTextEl.textContent = message;
+        if (errorMessageEl) errorMessageEl.classList.remove('hidden');
+        if (loadingIndicatorEl) loadingIndicatorEl.classList.add('hidden');
+        if (base64Image && searchButtonEl) {
+            searchButtonEl.disabled = false;
+            searchButtonEl.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+    }
+
+    // --- CÁMARA ---
+    async function startCamera() {
+        if (errorMessageEl) errorMessageEl.classList.add('hidden');
+        if (initialOptionsEl) initialOptionsEl.classList.add('hidden');
+        if (imagePreviewContainerEl) imagePreviewContainerEl.classList.add('hidden');
+        if (cameraSectionEl) cameraSectionEl.classList.remove('hidden');
+        if (cameraErrorEl) cameraErrorEl.textContent = ''; 
+
+        stopCamera();
+        try {
+            const constraints = { video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } }; 
+            mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+            cameraStreamEl.srcObject = mediaStream;
+            cameraStreamEl.play();
+            cameraStreamEl.style.transform = 'scaleX(1)';
+        } catch (error) {
+            try {
+                const fallbackConstraints = { video: true };
+                mediaStream = await navigator.mediaDevices.getUserMedia(fallbackConstraints);
+                cameraStreamEl.srcObject = mediaStream;
+                cameraStreamEl.play();
+                cameraStreamEl.style.transform = 'scaleX(-1)';
+            } catch (e) {
+                showInitialOptions(); 
+            }
+        }
+    }
+
+    function stopCamera() {
+        if (mediaStream) {
+            mediaStream.getTracks().forEach(track => track.stop());
+            cameraStreamEl.pause();
+            cameraStreamEl.srcObject = null;
+            mediaStream = null;
+        }
+    }
+
+    function captureImage() {
+        if (!mediaStream) return;
+        captureButtonEl.disabled = true; 
+        const video = cameraStreamEl;
+        const canvas = cameraCanvasEl;
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.save();
+        if (video.style.transform === 'scaleX(-1)') {
+            ctx.translate(canvas.width, 0);
+            ctx.scale(-1, 1);
+        }
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        ctx.restore();
+        stopCamera();
+        canvas.toBlob(async (blob) => {
+            captureButtonEl.disabled = false; 
+            if (blob) await processMedia(blob);
+            else showInitialOptions();
+        }, 'image/png', 1.0);
+    }
+    
+    function showInitialOptions() {
+        stopCamera(); 
+        base64Image = null;
+        if (imageInputEl) imageInputEl.value = null; 
+        if (initialOptionsEl) initialOptionsEl.classList.remove('hidden');
+        if (cameraSectionEl) cameraSectionEl.classList.add('hidden');
+        if (imagePreviewContainerEl) imagePreviewContainerEl.classList.add('hidden');
+        if (resultsCardEl) resultsCardEl.classList.add('hidden');
+        if (errorMessageEl) errorMessageEl.classList.add('hidden');
+        if (priceSummaryEl) priceSummaryEl.classList.add('hidden');
+        if (searchButtonEl) {
+            searchButtonEl.disabled = true;
+            searchButtonEl.classList.add('opacity-50', 'cursor-not-allowed');
+            if (buttonTextEl) buttonTextEl.textContent = 'INICIAR BÚSQUEDA (Coche no seleccionado)';
+        }
+    }
+
+    // --- LÓGICA PRECIOS ---
+    function extractPrices(text) {
+        if (!text) return [];
+        const priceRegex = /(?:€\s*|EUR\s*|€)(\d+[\.,]?\d*)|(\d+[\.,]?\d*)\s*(?:€|EUR)/gi;
+        let match;
+        const prices = [];
+        while ((match = priceRegex.exec(text)) !== null) {
+            let priceString = match[1] || match[2];
+            if (priceString) {
+                priceString = priceString.replace(',', '.');
+                const price = parseFloat(priceString);
+                if (!isNaN(price) && price > 0 && price < 2000) prices.push(price);
+            }
+        }
+        return prices;
+    }
+
+    function calculateStats(prices) {
+        if (!prices || prices.length === 0) return { min: null, max: null, avg: null, count: 0 };
+        const min = Math.min(...prices);
+        const max = Math.max(...prices);
+        const sum = prices.reduce((acc, price) => acc + price, 0);
+        const avg = sum / prices.length;
+        return { min: min, max: max, avg: Math.round(avg * 100) / 100, count: prices.length };
+    }
+
+    // --- FLUJO PRINCIPAL ---
+    window.startSearch = async function () {
+        if (!base64Image) {
+            showError("Selecciona una imagen.");
             return;
         }
-
-        els.inputCard.classList.add('hidden');
-        els.loading.classList.remove('hidden');
         
-        try {
-            const carData = await identifyCarWithGemini(imageBase64);
-            renderResults(carData);
-        } catch (e) {
-            els.loading.classList.add('hidden');
-            els.inputCard.classList.remove('hidden');
-            showError("Error de IA: " + (e.message || "Inténtalo de nuevo."));
+        // VOZ
+        speak("Iniciando escáner. Analizando imagen en la base de datos.");
+
+        if (resultsCardEl) resultsCardEl.classList.remove('hidden');
+        if (loadingIndicatorEl) loadingIndicatorEl.classList.remove('hidden');
+        if (errorMessageEl) errorMessageEl.classList.add('hidden');
+        if (sourcesListEl) sourcesListEl.innerHTML = '';
+        if (carIdentificationEl) carIdentificationEl.classList.add('hidden');
+        if (priceSummaryEl) priceSummaryEl.classList.add('hidden');
+        if (noResultsEl) noResultsEl.classList.add('hidden');
+        if (sourcesTitleEl) sourcesTitleEl.classList.add('hidden');
+        
+        if (searchButtonEl) {
+            searchButtonEl.disabled = true;
+            searchButtonEl.classList.add('opacity-50', 'cursor-not-allowed');
+            loadingMessageEl.textContent = "ANALIZANDO IMAGEN...";
         }
-    };
-
-    async function identifyCarWithGemini(base64) {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${apiKey}`;
         
-        const prompt = `
-            Actúa como un experto tasador de coches de Slot (Scalextric).
-            Analiza la imagen.
-            Responde SOLO con un JSON válido (sin markdown ni nada más) con esta estructura:
-            {
-                "brand": "Marca (ej: Scalextric, Ninco, Fly)",
-                "model": "Modelo y decoración (ej: Porsche 911 GT3 'Red Bull')",
-                "reference": "Referencia si se ve, sino null",
-                "description": "Breve frase descriptiva",
-                "estimated_value_range": "Valor estimado aprox (ej: 35-45€)",
-                "search_keywords": "palabras clave optimizadas para wallapop"
-            }
-        `;
+        const platforms = [
+            { name: "Wallapop", query: 'Wallapop segunda mano' }, 
+            { name: "Vinted", query: 'Vinted segunda mano' },
+            { name: "Milanuncios", query: 'Milanuncios' },
+            { name: "eBay", query: 'eBay listings' },
+            { name: "Tiendas", query: 'tienda online oficial' }
+        ];
 
-        const body = {
-            contents: [{
-                parts: [
-                    { text: prompt },
-                    { inlineData: { mimeType: "image/jpeg", data: base64 } }
-                ]
-            }]
+        try {
+            const carDetails = await identifySlotCar(base64Image);
+            
+            if (!carDetails || !carDetails.isSlotCar) {
+                showError("No parece un coche de slot.");
+                speak("No he podido identificar un coche de slot en la imagen.");
+                return;
+            }
+
+            const carName = `${carDetails.brand || ''} ${carDetails.model || ''} (${carDetails.reference || 'N/A'})`.trim();
+            if (identifiedCarEl) identifiedCarEl.textContent = carName.replace(/\(\s*\)/g, '').trim(); 
+            if (carKeywordsEl) carKeywordsEl.textContent = `Keywords: ${carDetails.keywords}`;
+            if (carIdentificationEl) carIdentificationEl.classList.remove('hidden');
+            
+            speak(`Identificado: ${carDetails.brand} ${carDetails.model}. Buscando precios.`);
+
+            const finalPlatforms = platforms.map(p => ({ ...p, query: `precio de mercado ${carDetails.keywords} ${p.query}` }));
+
+            if (loadingMessageEl) loadingMessageEl.textContent = "BUSCANDO PRECIOS...";
+            const searchResults = await fetchPrices(finalPlatforms);
+            
+            processAndRenderResults(searchResults); 
+
+        } catch (error) {
+            showError(`Error: ${error.message}`);
+        } finally {
+            if (loadingIndicatorEl) loadingIndicatorEl.classList.add('hidden');
+            if (searchButtonEl) {
+                searchButtonEl.disabled = false;
+                searchButtonEl.classList.remove('opacity-50', 'cursor-not-allowed');
+                buttonTextEl.textContent = 'INICIAR BÚSQUEDA';
+            }
+        }
+    }
+
+    async function identifySlotCar(b64) {
+        const systemPrompt = "Eres un experto en coches de slot. Analiza la imagen. Si es un coche de slot, devuelve JSON con brand, model, reference y keywords para búsqueda. isSlotCar: boolean.";
+        const userQuery = "Analiza este objeto. Devuelve JSON.";
+        const payload = {
+            contents: [{ role: "user", parts: [{ text: userQuery }, { inlineData: { mimeType: imageMimeType || "image/jpeg", data: b64 } }] }],
+            systemInstruction: { parts: [{ text: systemPrompt }] },
+            generationConfig: { responseMimeType: "application/json", responseSchema: { type: "OBJECT", properties: { "isSlotCar": { "type": "BOOLEAN" }, "brand": { "type": "STRING" }, "model": { "type": "STRING" }, "reference": { "type": "STRING" }, "keywords": { "type": "STRING" } }, required: ["isSlotCar", "keywords"] } }
         };
 
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
+        try {
+            const response = await fetch(VMM_MODEL_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            const result = await response.json();
+            return JSON.parse(result.candidates?.[0]?.content?.parts?.[0]?.text);
+        } catch (error) {
+            throw new Error("Fallo en identificación.");
+        }
+    }
+
+    async function fetchPrices(platforms) {
+        const allResults = [];
+        for (const platform of platforms) {
+            if (loadingMessageEl) loadingMessageEl.textContent = `Buscando en ${platform.name}...`;
+            try {
+                const googlePayload = {
+                    contents: [{ parts: [{ text: `Busca precios coches slot: ${platform.query}` }] }],
+                    tools: [{ "google_search": {} }],
+                    systemInstruction: { parts: [{ text: `Resume precios en EUR para "${platform.query}". Sé breve.` }] }
+                };
+                const response = await fetch(VMM_MODEL_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(googlePayload) });
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+                let text = "Sin datos.", sources = [];
+                if (candidate?.content?.parts?.[0]?.text) {
+                    text = candidate.content.parts[0].text;
+                    sources = candidate.groundingMetadata?.groundingAttributions?.map(a => ({ uri: a.web?.uri, title: a.web?.title })).filter(s => s.uri) || [];
+                }
+                allResults.push({ name: platform.name, text, sources });
+            } catch (e) { allResults.push({ name: platform.name, text: "Error.", sources: [] }); }
+        }
+        return allResults;
+    }
+
+    function processAndRenderResults(results) {
+        let allPrices = [];
+        let sourcesHtml = '';
+        let foundSources = 0;
+
+        results.forEach(res => {
+            const prices = extractPrices(res.text);
+            if (res.sources.length > 0 || prices.length > 0) {
+                allPrices.push(...prices);
+                foundSources++;
+                sourcesHtml += `<div class="p-3 bg-gray-800 rounded-xl border border-blue-600"><h3 class="text-sm font-bold text-blue-400">${res.name}</h3><p class="text-xs text-gray-300 mt-1">${res.text}</p><div class="mt-1 text-xs text-blue-400 opacity-70">${res.sources.slice(0, 1).map(s => `<a href="${s.uri}" target="_blank" class="truncate">Fuente: ${s.title}</a>`).join('')}</div></div>`;
+            }
         });
-
-        if (!response.ok) throw new Error("Fallo de conexión con Google AI.");
         
-        const data = await response.json();
-        const text = data.candidates[0].content.parts[0].text;
-        const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
-        return JSON.parse(cleanText);
+        const stats = calculateStats(allPrices);
+        if (stats.count > 0) {
+            priceSummaryEl.classList.remove('hidden');
+            avgPriceEl.textContent = `${stats.avg.toFixed(2).replace('.', ',')} €`;
+            sourcesTitleEl.classList.toggle('hidden', foundSources === 0);
+            noResultsEl.classList.add('hidden');
+            speak(`Valoración completada. Precio medio estimado: ${Math.round(stats.avg)} euros.`);
+        } else {
+            priceSummaryEl.classList.add('hidden');
+            noResultsEl.classList.remove('hidden');
+            speak("Identificación completada, pero no encontré precios fiables.");
+        }
+        sourcesListEl.innerHTML = sourcesHtml;
     }
+    
+    // --- EVENTOS ---
+    document.addEventListener('DOMContentLoaded', () => {
+        setupDOMElements();
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.onvoiceschanged = loadVoices;
+            loadVoices();
+        }
 
-    // --- Render Results ---
-
-    function renderResults(data) {
-        els.loading.classList.add('hidden');
-        els.result.classList.remove('hidden');
-
-        els.brand.textContent = data.brand || "SLOT";
-        els.model.textContent = data.model || "Modelo Desconocido";
-        els.ref.textContent = data.reference ? `#${data.reference}` : "";
-        els.desc.textContent = data.description || "Identificación completada con éxito.";
-        els.price.textContent = data.estimated_value_range || "Consultar";
-
-        const query = encodeURIComponent(data.search_keywords || `${data.brand} ${data.model} slot`);
+        document.getElementById('cameraButton').addEventListener('click', startCamera);
+        document.getElementById('captureButton').addEventListener('click', captureImage);
+        document.getElementById('cancelCaptureButton').addEventListener('click', showInitialOptions);
+        document.getElementById('uploadFileButton').addEventListener('click', () => imageInputEl.click());
+        document.getElementById('changePhotoButton').addEventListener('click', showInitialOptions);
         
-        els.lWalla.href = `https://es.wallapop.com/app/search?keywords=${query}`;
-        els.lEbay.href = `https://www.ebay.es/sch/i.html?_nkw=${query}&_sacat=0`;
-        els.lGoogle.href = `https://www.google.com/search?q=${query}&tbm=shop`;
-    }
+        // EVENTO PARA ACTIVAR AUDIO CON INTERACCIÓN DE USUARIO
+        if (testVoiceBtnEl) {
+            testVoiceBtnEl.addEventListener('click', () => {
+                speak("Prueba de audio correcta. Sistemas en línea.");
+            });
+        }
+        
+        // Hacer que el switch también hable para activar el contexto
+        if (voiceToggleEl) {
+            voiceToggleEl.addEventListener('change', () => {
+                if (voiceToggleEl.checked) speak("Narración de voz activada.");
+            });
+        }
 
-    function showError(msg) {
-        els.errorMsg.textContent = msg;
-        els.error.classList.remove('hidden');
-        setTimeout(() => els.error.classList.add('hidden'), 5000);
-    }
-
+        if (imageInputEl) {
+            imageInputEl.addEventListener('change', (e) => {
+                if (e.target.files?.[0]) processMedia(e.target.files[0]);
+            });
+        }
+        showInitialOptions();
+    });
 </script>
 </body>
 </html>
