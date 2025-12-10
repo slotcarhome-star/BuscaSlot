@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Slot Price Scout | Professional</title>
+    <title>BuscaSlot | Escaner Profesional</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&display=swap');
@@ -93,8 +93,8 @@
 
     <!-- Header Limpio -->
     <header class="w-full max-w-lg p-4 mb-4 text-center rounded-2xl shadow-xl border border-blue-900/40 bg-gray-900/80 backdrop-blur-md sticky top-2 z-50">
-        <h1 class="text-2xl sm:text-3xl font-black mb-0 neon-title italic truncate">SLOT PRICE SCOUT</h1>
-        <p class="text-[10px] sm:text-xs text-gray-400 font-mono tracking-widest uppercase mt-1">Professional Edition</p>
+        <h1 class="text-2xl sm:text-3xl font-black mb-0 neon-title italic truncate">BUSCA SLOT</h1>
+        <p class="text-[10px] sm:text-xs text-gray-400 font-mono tracking-widest uppercase mt-1">Escáner de Mercado</p>
     </header>
 
     <!-- Main Content -->
@@ -254,10 +254,9 @@
     // ==========================================
     // CONFIGURACIÓN DE SEGURIDAD
     // ==========================================
-    // NOTA: Esta clave funcionará SOLO si has añadido "https://slotcarhome-star.github.io/*"
-    // a las restricciones de tu API Key en Google Cloud Console.
     
-    const COMMERCIAL_API_KEY = "AIzaSyBxhtfeKb_sL92jfa-HhCsAlenoYkDCcSs"; 
+    // HE PUESTO TU CLAVE DE LA FOTO AQUÍ ABAJO:
+    const COMMERCIAL_API_KEY = "AIzaSyC2Okz3uhnO3vmKXK-6S3ccKhSR5y9y1BU"; 
 
     // ==========================================
 
@@ -355,13 +354,11 @@
         
         // Diagnóstico inteligente de errores
         if (msg.includes('403')) {
-            userMsg = "🚫 ACCESO DENEGADO (403): Tu dominio 'slotcarhome-star.github.io' no está autorizado en Google Cloud. Añádelo en Credenciales > Restricciones.";
+            userMsg = "🚫 ACCESO DENEGADO (403): Revisa las restricciones en Google Cloud. ¿Pusiste bien tu web?";
         } else if (msg.includes('400')) {
-            userMsg = "❌ ERROR DE CLAVE (400): La API Key es inválida o ha caducado. Revisa el código.";
+            userMsg = "❌ ERROR DE CLAVE (400): Falta habilitar 'Generative Language API' en Google Cloud Console.";
         } else if (msg.includes('Failed to fetch')) {
-            userMsg = "🌐 SIN CONEXIÓN: Verifica tu internet o si un bloqueador de anuncios está cortando la conexión.";
-        } else if (!isCritical) {
-             userMsg = "⚠️ Advertencia: " + msg;
+            userMsg = "🌐 SIN CONEXIÓN: Verifica tu internet.";
         }
 
         els.errText.textContent = userMsg;
@@ -369,7 +366,6 @@
         els.loader.classList.add('hidden');
         if (state.image) els.searchBtn.disabled = false;
         
-        // Si es crítico, dejamos el mensaje visible más tiempo
         setTimeout(() => els.errToast.classList.add('hidden'), isCritical ? 10000 : 5000);
     };
 
@@ -429,8 +425,8 @@
     window.startSearch = async () => {
         if (!state.image) return;
         
-        if (COMMERCIAL_API_KEY.length < 10) {
-            alert("Error: Falta la API KEY en el código.");
+        if (COMMERCIAL_API_KEY.includes("PON_AQUI") || COMMERCIAL_API_KEY.length < 10) {
+            alert("⚠️ ¡Falta la API KEY en el código! ⚠️\nEdita el archivo index.html y pon la clave.");
             return;
         }
 
@@ -497,7 +493,6 @@
         const res = await fetch(VMM_MODEL_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         
         if(!res.ok) {
-            // Capturamos el código de estado para diagnóstico
             throw new Error(`Error HTTP ${res.status}`);
         }
         const json = await res.json();
@@ -532,8 +527,6 @@
                 sources: json.candidates?.[0]?.groundingMetadata?.groundingAttributions || [] 
             };
         } catch (e) {
-            // Si falla la búsqueda (ej. permisos), fallback silencioso a IA
-            // PERO si el error es de autenticación (403/400), lo propagamos
             if (e.message.includes('403') || e.message.includes('400')) throw e;
 
             try {
