@@ -3,34 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BuscaSlot | Escaner Profesional</title>
+    <title>Slot Price Scout | by Albert Closa</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&display=swap');
         
         body { 
             font-family: 'Orbitron', sans-serif; 
-            background-color: #050718; 
+            background-color: #020617; 
             color: #d1d5db; 
             overflow-x: hidden;
             -webkit-tap-highlight-color: transparent;
         }
 
         :root {
-            --neon-color: #3b82f6;
+            --neon-blue: #00f3ff; 
             --neon-green: #10b981;
             --neon-red: #ef4444;
             --neon-gold: #f59e0b;
         }
 
         .neon-title {
-            color: #dbeafe; 
-            text-shadow: 0 0 4px var(--neon-color), 0 0 8px #93c5fd; 
-            letter-spacing: 0.1em;
+            color: #e0f2fe; 
+            text-shadow: 0 0 5px #00bfff, 0 0 10px #00bfff, 0 0 20px #00bfff, 0 0 40px #0077ff;
+            letter-spacing: 0.05em;
         }
 
         .neon-card {
-            background-color: #111827; 
+            background-color: #0f172a; 
             border: 1px solid #1e3a8a;
             box-shadow: 0 0 15px rgba(30, 58, 138, 0.3);
             transition: all 0.3s ease-in-out;
@@ -46,6 +46,18 @@
         }
         .neon-button:active { transform: scale(0.98); }
         .neon-button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(100%); }
+        
+        .neon-input {
+            background-color: #1e293b;
+            border: 2px solid #334155;
+            color: #fff;
+            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.5);
+        }
+        .neon-input:focus {
+            border-color: var(--neon-blue);
+            outline: none;
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
+        }
 
         .stat-box {
             background-color: #0f172a; 
@@ -85,16 +97,25 @@
         .custom-scroll::-webkit-scrollbar { width: 4px; }
         .custom-scroll::-webkit-scrollbar-track { background: #111827; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #1e40af; border-radius: 4px; }
+        
+        /* Modal Styles */
+        #keyModal {
+            backdrop-filter: blur(8px);
+            background-color: rgba(2, 6, 23, 0.85);
+        }
     </style>
 </head>
 <body>
 
 <div id="app" class="min-h-screen flex flex-col items-center w-full p-3 sm:p-4 pb-12">
 
-    <!-- Header Limpio -->
-    <header class="w-full max-w-lg p-4 mb-4 text-center rounded-2xl shadow-xl border border-blue-900/40 bg-gray-900/80 backdrop-blur-md sticky top-2 z-50">
-        <h1 class="text-2xl sm:text-3xl font-black mb-0 neon-title italic truncate">BUSCA SLOT</h1>
-        <p class="text-[10px] sm:text-xs text-gray-400 font-mono tracking-widest uppercase mt-1">Escáner de Mercado</p>
+    <!-- Header Personalizado -->
+    <header class="w-full max-w-lg p-4 mb-4 text-center rounded-2xl shadow-xl border border-blue-900/40 bg-gray-900/90 backdrop-blur-md sticky top-2 z-40">
+        <h1 class="text-2xl sm:text-3xl font-black mb-1 neon-title italic truncate">SLOT PRICE SCOUT</h1>
+        <div class="flex justify-center items-center gap-2">
+            <p class="text-[10px] sm:text-xs text-blue-400 font-mono tracking-widest uppercase border-t border-blue-900/50 inline-block px-4 pt-1">by Albert Closa</p>
+            <button onclick="resetKey()" class="text-[10px] text-gray-500 hover:text-white border border-gray-700 px-2 rounded bg-gray-900">🔑 Config</button>
+        </div>
     </header>
 
     <!-- Main Content -->
@@ -177,6 +198,7 @@
                     <div class="w-2 h-8 bg-blue-300 animate-[bounce_1.4s_infinite]"></div>
                 </div>
                 <p id="loadingMessage" class="text-blue-400 text-xs font-mono uppercase animate-pulse">Analizando imagen...</p>
+                <p id="retryMessage" class="text-yellow-400 text-[10px] font-mono mt-2 hidden">Servidor ocupado, reintentando automáticamente...</p>
             </div>
 
             <!-- ID + Condition -->
@@ -237,40 +259,64 @@
             </p>
         </div>
 
-        <!-- Error Alert Mejorado -->
-        <div id="errorMessage" class="hidden fixed bottom-5 left-4 right-4 z-[100] p-4 bg-red-950/95 border border-red-500 text-white rounded-xl shadow-2xl backdrop-blur-md animate-bounce-in flex items-center">
-            <div class="mr-3 p-2 bg-red-900 rounded-full flex-shrink-0">⚠️</div>
-            <div class="flex-1">
-                <p class="font-bold text-xs uppercase text-red-400">Diagnóstico del Error</p>
-                <p id="errorText" class="text-sm font-medium leading-tight text-white"></p>
+        <!-- Error Alert Mejorado (Con Botón de Rescate) -->
+        <div id="errorMessage" class="hidden fixed bottom-5 left-4 right-4 z-[100] p-4 bg-red-950/95 border border-red-500 text-white rounded-xl shadow-2xl backdrop-blur-md animate-bounce-in">
+            <div class="flex items-center mb-2">
+                <div class="mr-3 p-2 bg-red-900 rounded-full flex-shrink-0">⚠️</div>
+                <div class="flex-1">
+                    <p class="font-bold text-xs uppercase text-red-400">Error de Sistema</p>
+                    <p id="errorText" class="text-sm font-medium leading-tight text-white"></p>
+                </div>
+                <button onclick="document.getElementById('errorMessage').classList.add('hidden')" class="ml-3 p-2 text-gray-400 hover:text-white bg-red-900/50 rounded-lg">✕</button>
             </div>
-            <button onclick="document.getElementById('errorMessage').classList.add('hidden')" class="ml-3 p-2 text-gray-400 hover:text-white bg-red-900/50 rounded-lg">✕</button>
+            <button onclick="resetKey()" class="w-full mt-2 py-2 bg-yellow-600/20 border border-yellow-500/50 text-yellow-300 text-xs font-bold rounded-lg hover:bg-yellow-600/40 transition">
+                🔑 REINICIAR CLAVE
+            </button>
         </div>
 
     </main>
+
+    <!-- API KEY MODAL (LA SOLUCIÓN ANTI-BLOQUEO) -->
+    <div id="keyModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm hidden">
+        <div class="bg-gray-900 border border-blue-500/50 rounded-2xl p-6 w-full max-w-sm shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 via-cyan-400 to-blue-600"></div>
+            
+            <div class="text-center mb-6">
+                <h2 class="text-xl font-black text-white mb-2 neon-title">BIENVENIDO</h2>
+                <p class="text-xs text-gray-400">Para evitar bloqueos de Google, la clave se guardará solo en tu dispositivo.</p>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-[10px] uppercase text-blue-400 font-bold mb-1 tracking-wider">Pega tu API KEY aquí:</label>
+                    <input type="text" id="apiKeyInput" placeholder="AIzaSy..." class="w-full p-3 rounded-xl neon-input text-sm font-mono bg-gray-800/50 border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all">
+                    <p class="text-[9px] text-gray-500 mt-2 text-right italic">* No se subirá a ningún servidor</p>
+                </div>
+
+                <button onclick="saveApiKey()" class="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-900/30 transition transform active:scale-95">
+                    GUARDAR Y ENTRAR
+                </button>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <script>
     // ==========================================
-    // CONFIGURACIÓN DE SEGURIDAD
+    // CONFIGURACIÓN "ANTI-BLOQUEO"
     // ==========================================
     
-    // HE PUESTO TU CLAVE DE LA FOTO AQUÍ ABAJO:
-    const COMMERCIAL_API_KEY = "AIzaSyC2Okz3uhnO3vmKXK-6S3ccKhSR5y9y1BU"; 
+    // EL CÓDIGO AHORA ESTÁ VACÍO. LA CLAVE SE PIDE AL USUARIO.
+    let currentApiKey = localStorage.getItem('slot_scout_key') || ""; 
 
     // ==========================================
-
-    const VMM_MODEL_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${COMMERCIAL_API_KEY}`;
-
-    let state = {
-        image: null,
-        mimeType: null,
-        stream: null,
-        voices: []
-    };
 
     const $ = (id) => document.getElementById(id);
     const els = {
+        keyModal: $('keyModal'),
+        keyInput: $('apiKeyInput'),
+        // ...resto de elementos
         imageInput: $('imageInput'),
         preview: $('imagePreview'),
         previewCont: $('imagePreviewContainer'),
@@ -284,6 +330,7 @@
         resCard: $('results-card'),
         loader: $('loadingIndicator'),
         loadMsg: $('loadingMessage'),
+        retryMsg: $('retryMessage'),
         errToast: $('errorMessage'),
         errText: $('errorText'),
         idCar: $('identifiedCar'),
@@ -299,6 +346,43 @@
         srcList: $('sourcesList'),
         srcCont: $('sourcesContainer'),
         noRes: $('noResults')
+    };
+
+    // --- GESTIÓN DE CLAVES ---
+    const checkKey = () => {
+        if (!currentApiKey || currentApiKey.length < 10) {
+            els.keyModal.classList.remove('hidden');
+        } else {
+            els.keyModal.classList.add('hidden');
+        }
+    };
+
+    window.saveApiKey = () => {
+        const inputKey = els.keyInput.value.trim();
+        if (inputKey && inputKey.startsWith('AIza')) {
+            localStorage.setItem('slot_scout_key', inputKey);
+            currentApiKey = inputKey;
+            els.keyModal.classList.add('hidden');
+            alert("✅ Clave guardada. Ya puedes escanear.");
+        } else {
+            alert("⚠️ La clave parece incorrecta. Debe empezar por 'AIza'.");
+        }
+    };
+
+    window.resetKey = () => {
+        localStorage.removeItem('slot_scout_key');
+        currentApiKey = "";
+        location.reload();
+    };
+    // -------------------------
+
+    const getModelUrl = () => `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${currentApiKey}`;
+
+    let state = {
+        image: null,
+        mimeType: null,
+        stream: null,
+        voices: []
     };
 
     const initVoice = () => {
@@ -353,10 +437,11 @@
         let userMsg = msg;
         
         // Diagnóstico inteligente de errores
-        if (msg.includes('403')) {
-            userMsg = "🚫 ACCESO DENEGADO (403): Revisa las restricciones en Google Cloud. ¿Pusiste bien tu web?";
-        } else if (msg.includes('400')) {
-            userMsg = "❌ ERROR DE CLAVE (400): Falta habilitar 'Generative Language API' en Google Cloud Console.";
+        if (msg.includes('403') || msg.includes('400')) {
+            userMsg = "🚫 CLAVE NO VÁLIDA: Es posible que la clave haya sido borrada o bloqueada. Pulsa 'REINICIAR CLAVE' e introduce una nueva.";
+        } else if (msg.includes('429')) {
+             userMsg = "⏳ SERVIDOR SATURADO: Demasiadas peticiones seguidas. Esperando para reintentar...";
+             isCritical = false; 
         } else if (msg.includes('Failed to fetch')) {
             userMsg = "🌐 SIN CONEXIÓN: Verifica tu internet.";
         }
@@ -364,9 +449,44 @@
         els.errText.textContent = userMsg;
         els.errToast.classList.remove('hidden');
         els.loader.classList.add('hidden');
+        
         if (state.image) els.searchBtn.disabled = false;
         
-        setTimeout(() => els.errToast.classList.add('hidden'), isCritical ? 10000 : 5000);
+        if (!msg.includes('403') && !msg.includes('400')) {
+            setTimeout(() => els.errToast.classList.add('hidden'), isCritical ? 10000 : 5000);
+        }
+    };
+
+    // Función de Fetch con Reintento Automático
+    const fetchWithRetry = async (options, retries = 3, backoff = 2000) => {
+        const url = getModelUrl(); 
+        try {
+            const res = await fetch(url, options);
+            
+            if (res.status === 429) {
+                if (retries > 0) {
+                    console.warn(`Error 429 detectado. Reintentando en ${backoff}ms...`);
+                    els.retryMsg.classList.remove('hidden');
+                    els.retryMsg.textContent = `Servidor ocupado. Reintentando en ${backoff/1000}s...`;
+                    
+                    await new Promise(r => setTimeout(r, backoff));
+                    return fetchWithRetry(options, retries - 1, backoff * 1.5);
+                } else {
+                     throw new Error("HTTP 429: Demasiadas peticiones. Espera un minuto.");
+                }
+            }
+            
+            els.retryMsg.classList.add('hidden');
+            return res;
+            
+        } catch (e) {
+             if (retries > 0 && (e.message.includes('429') || e.name === 'TypeError')) {
+                console.warn(`Error de red. Reintentando...`);
+                await new Promise(r => setTimeout(r, backoff));
+                return fetchWithRetry(options, retries - 1, backoff * 1.5);
+             }
+             throw e;
+        }
     };
 
     const startCam = async () => {
@@ -384,7 +504,9 @@
                 state.stream = await navigator.mediaDevices.getUserMedia({ video: true });
                 els.video.srcObject = state.stream;
             } catch (err) { 
-                resetUI(); 
+                // Restore UI
+                els.initOpts.classList.remove('hidden');
+                els.camSec.classList.add('hidden');
                 alert("Por favor habilita el acceso a la cámara para escanear coches."); 
             }
         }
@@ -420,13 +542,14 @@
         els.btnText.innerText = "ESPERANDO IMAGEN";
         $('statusDot').classList.remove('bg-green-500');
         $('statusDot').classList.add('bg-gray-600');
+        els.retryMsg.classList.add('hidden');
     };
 
     window.startSearch = async () => {
         if (!state.image) return;
         
-        if (COMMERCIAL_API_KEY.includes("PON_AQUI") || COMMERCIAL_API_KEY.length < 10) {
-            alert("⚠️ ¡Falta la API KEY en el código! ⚠️\nEdita el archivo index.html y pon la clave.");
+        if (!currentApiKey || currentApiKey.length < 10) {
+            checkKey(); // Show modal again
             return;
         }
 
@@ -490,7 +613,12 @@
             contents: [{ parts: [{ text: prompt }, { inlineData: { mimeType: state.mimeType, data: b64 } }] }],
             generationConfig: { responseMimeType: "application/json" }
         };
-        const res = await fetch(VMM_MODEL_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        
+        const res = await fetchWithRetry({ 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify(payload) 
+        });
         
         if(!res.ok) {
             throw new Error(`Error HTTP ${res.status}`);
@@ -513,7 +641,11 @@
         };
 
         try {
-            const res = await fetch(VMM_MODEL_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payloadWithTools) });
+            const res = await fetchWithRetry({ 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify(payloadWithTools) 
+            });
             
             if(!res.ok) throw new Error(`HTTP ${res.status}`);
 
@@ -530,7 +662,11 @@
             if (e.message.includes('403') || e.message.includes('400')) throw e;
 
             try {
-                const res = await fetch(VMM_MODEL_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payloadFallback) });
+                const res = await fetchWithRetry({ 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify(payloadFallback) 
+                });
                 const json = await res.json();
                 return { 
                     platform: platform.name + " (Estimado)", 
@@ -597,7 +733,9 @@
             setupLink(els.maxLink, maxLink);
 
             els.priceSec.classList.remove('hidden');
-            speak(`Tasación finalizada. Valor estimado: ${recPrice} euros.`);
+            
+            const speechText = `Identificado: ${carInfo.brand}, ${carInfo.model}. Precios de mercado encontrados: entre ${minVal} y ${maxVal} euros. Mi valoración recomendada es de ${recPrice} euros.`;
+            speak(speechText);
 
         } else {
             els.noRes.classList.remove('hidden');
@@ -612,6 +750,7 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         initVoice();
+        checkKey();
         $('cameraButton').onclick = startCam;
         $('captureButton').onclick = capture;
         $('cancelCaptureButton').onclick = resetUI;
