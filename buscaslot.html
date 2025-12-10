@@ -3,34 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Slot Price Scout | by Albert Closa</title>
+    <title>BusquedaSlot | Albert Closa</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&display=swap');
         
         body { 
             font-family: 'Orbitron', sans-serif; 
-            background-color: #020617; 
+            background-color: #050718; 
             color: #d1d5db; 
             overflow-x: hidden;
             -webkit-tap-highlight-color: transparent;
         }
 
         :root {
-            --neon-blue: #00f3ff; 
+            --neon-color: #3b82f6;
             --neon-green: #10b981;
             --neon-red: #ef4444;
             --neon-gold: #f59e0b;
         }
 
+        /* --- Estilos Neón y UI --- */
         .neon-title {
-            color: #e0f2fe; 
-            text-shadow: 0 0 5px #00bfff, 0 0 10px #00bfff, 0 0 20px #00bfff, 0 0 40px #0077ff;
-            letter-spacing: 0.05em;
+            color: #dbeafe; 
+            text-shadow: 0 0 4px var(--neon-color), 0 0 8px #93c5fd; 
+            letter-spacing: 0.1em;
         }
 
         .neon-card {
-            background-color: #0f172a; 
+            background-color: #111827; 
             border: 1px solid #1e3a8a;
             box-shadow: 0 0 15px rgba(30, 58, 138, 0.3);
             transition: all 0.3s ease-in-out;
@@ -46,18 +47,6 @@
         }
         .neon-button:active { transform: scale(0.98); }
         .neon-button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(100%); }
-        
-        .neon-input {
-            background-color: #1e293b;
-            border: 2px solid #334155;
-            color: #fff;
-            box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.5);
-        }
-        .neon-input:focus {
-            border-color: var(--neon-blue);
-            outline: none;
-            box-shadow: 0 0 10px rgba(0, 243, 255, 0.3);
-        }
 
         .stat-box {
             background-color: #0f172a; 
@@ -97,25 +86,115 @@
         .custom-scroll::-webkit-scrollbar { width: 4px; }
         .custom-scroll::-webkit-scrollbar-track { background: #111827; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #1e40af; border-radius: 4px; }
-        
-        /* Modal Styles */
-        #keyModal {
-            backdrop-filter: blur(8px);
-            background-color: rgba(2, 6, 23, 0.85);
+
+        /* Muro de Pago y Modales */
+        #access-screen, #api-key-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #050718; z-index: 1000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px;
+        }
+        /* El modal de API Key tiene fondo semi-transparente */
+        #api-key-modal { background: rgba(5, 7, 24, 0.95); backdrop-filter: blur(10px); z-index: 2000; }
+
+        .access-input {
+            background: #111827; border: 1px solid #3b82f6; color: white;
+            padding: 15px; border-radius: 10px; width: 100%; text-align: center;
+            font-family: 'Orbitron', sans-serif; letter-spacing: 1px;
+            margin-bottom: 15px; outline: none; transition: all 0.3s;
+        }
+        .access-input:focus { box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); border-color: #60a5fa; }
+
+        /* Botón de Ajustes (Engranaje) */
+        #settings-btn {
+            position: fixed; top: 15px; right: 15px; z-index: 100;
+            background: rgba(17, 24, 39, 0.8); padding: 8px; border-radius: 50%;
+            border: 1px solid #1e3a8a; color: #3b82f6; cursor: pointer;
+            backdrop-filter: blur(5px);
         }
     </style>
 </head>
 <body>
 
-<div id="app" class="min-h-screen flex flex-col items-center w-full p-3 sm:p-4 pb-12">
+<!-- BOTÓN AJUSTES -->
+<button id="settings-btn" class="hidden" onclick="showApiKeyModal()">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+</button>
 
-    <!-- Header Personalizado -->
-    <header class="w-full max-w-lg p-4 mb-4 text-center rounded-2xl shadow-xl border border-blue-900/40 bg-gray-900/90 backdrop-blur-md sticky top-2 z-40">
-        <h1 class="text-2xl sm:text-3xl font-black mb-1 neon-title italic truncate">SLOT PRICE SCOUT</h1>
-        <div class="flex justify-center items-center gap-2">
-            <p class="text-[10px] sm:text-xs text-blue-400 font-mono tracking-widest uppercase border-t border-blue-900/50 inline-block px-4 pt-1">by Albert Closa</p>
-            <button onclick="resetKey()" class="text-[10px] text-gray-500 hover:text-white border border-gray-700 px-2 rounded bg-gray-900">🔑 Config</button>
+<!-- MODAL CONFIGURACIÓN API KEY -->
+<div id="api-key-modal" class="hidden">
+    <div class="neon-card p-6 rounded-2xl w-full max-w-sm text-center">
+        <h2 class="text-xl font-bold text-white mb-4 neon-title">CONFIGURACIÓN</h2>
+        <p class="text-xs text-gray-400 mb-4 text-justify">
+            Aquí puedes actualizar tu clave API de Google Gemini si la anterior deja de funcionar.
+        </p>
+        
+        <input type="password" id="api-key-input" class="access-input" placeholder="Pega tu API Key aquí">
+        
+        <div class="flex space-x-2">
+            <button onclick="saveApiKey()" class="neon-button flex-1 py-3 rounded-xl text-sm">GUARDAR</button>
+            <button onclick="closeApiKeyModal()" class="py-3 px-4 bg-gray-800 text-gray-400 rounded-xl text-sm border border-gray-600">CANCELAR</button>
         </div>
+        <p class="text-[10px] text-gray-500 mt-4 underline cursor-pointer" onclick="window.open('https://aistudio.google.com/app/apikey')">Obtener Key Gratis</p>
+    </div>
+</div>
+
+<!-- PANTALLA DE ACCESO / PAGO -->
+<div id="access-screen">
+    <div class="w-full max-w-md text-center">
+        <h1 class="text-4xl font-black mb-1 neon-title italic">BUSQUEDASLOT</h1>
+        <p class="text-xs text-gray-400 font-mono tracking-widest uppercase mb-8">by Albert Closa</p>
+
+        <!-- Tarjeta de Pago -->
+        <div id="payment-card" class="neon-card p-6 rounded-2xl mb-6">
+            <div class="mb-6">
+                <p class="text-gray-400 text-sm mb-2 uppercase tracking-wide">Acceso Premium Vitalicio</p>
+                <p class="text-5xl font-black text-white price-text">1,00€</p>
+            </div>
+            
+            <button id="btn-pay" class="neon-button w-full py-4 rounded-xl text-lg mb-4 shadow-lg">
+                PAGAR AHORA
+            </button>
+            
+            <div id="payment-processing" class="hidden">
+                <div class="flex justify-center items-center space-x-2 py-4">
+                    <div class="w-3 h-3 bg-blue-500 rounded-full animate-bounce"></div>
+                    <div class="w-3 h-3 bg-blue-500 rounded-full animate-bounce delay-100"></div>
+                    <div class="w-3 h-3 bg-blue-500 rounded-full animate-bounce delay-200"></div>
+                </div>
+                <p class="text-xs text-blue-300 animate-pulse">Procesando pago seguro...</p>
+            </div>
+
+            <div id="payment-success" class="hidden mt-4 bg-green-900/30 p-4 rounded-xl border border-green-500/30">
+                <p class="text-green-400 font-bold text-sm mb-2">¡PAGO COMPLETADO!</p>
+                <p class="text-xs text-gray-300 mb-1">Tu ID de acceso es:</p>
+                <p id="generated-id" class="text-2xl font-mono text-white font-bold tracking-widest select-all bg-black/50 p-2 rounded border border-green-500/50 mb-2">SLOT-XXXX</p>
+                <p class="text-[10px] text-gray-400">Copia este código y úsalo abajo.</p>
+            </div>
+        </div>
+
+        <!-- Login -->
+        <div class="neon-card p-6 rounded-2xl">
+            <p class="text-gray-400 text-xs mb-3 uppercase">¿Ya tienes tu ID?</p>
+            <input type="text" id="access-code-input" class="access-input" placeholder="INTRODUCE TU ID">
+            <button id="btn-unlock" class="w-full py-3 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-xl border border-gray-600 transition">
+                DESBLOQUEAR
+            </button>
+            <p id="login-error" class="text-red-500 text-xs mt-2 hidden font-bold">ID INCORRECTO</p>
+        </div>
+    </div>
+</div>
+
+<!-- APLICACIÓN PRINCIPAL -->
+<div id="app" class="min-h-screen flex flex-col items-center w-full p-3 sm:p-4 pb-12 hidden">
+
+    <!-- Header -->
+    <header class="w-full max-w-lg p-4 mb-4 text-center rounded-2xl shadow-xl border border-blue-900/40 bg-gray-900/80 backdrop-blur-md sticky top-2 z-50">
+        <h1 class="text-2xl sm:text-3xl font-black mb-0 neon-title italic truncate">BUSQUEDASLOT</h1>
+        <p class="text-[10px] sm:text-xs text-gray-400 font-mono tracking-widest uppercase mt-1">by Albert Closa</p>
     </header>
 
     <!-- Main Content -->
@@ -198,7 +277,6 @@
                     <div class="w-2 h-8 bg-blue-300 animate-[bounce_1.4s_infinite]"></div>
                 </div>
                 <p id="loadingMessage" class="text-blue-400 text-xs font-mono uppercase animate-pulse">Analizando imagen...</p>
-                <p id="retryMessage" class="text-yellow-400 text-[10px] font-mono mt-2 hidden">Servidor ocupado, reintentando automáticamente...</p>
             </div>
 
             <!-- ID + Condition -->
@@ -212,8 +290,6 @@
 
             <!-- Precios -->
             <div id="priceSummary" class="hidden fade-in mb-6">
-                
-                <!-- RECOMENDACIÓN -->
                 <div class="rec-box p-4 rounded-xl text-center mb-4 relative">
                     <p class="text-[10px] text-yellow-400 font-bold uppercase tracking-widest mb-1 z-10 relative">Precio Recomendado</p>
                     <p id="recPrice" class="text-4xl sm:text-5xl font-black text-white price-text z-10 relative my-2">--€</p>
@@ -221,7 +297,6 @@
                 </div>
 
                 <div class="grid grid-cols-2 gap-3 mb-4">
-                    <!-- Min -->
                     <div class="stat-box min p-3 rounded-xl text-center">
                         <div class="mb-2">
                             <p class="text-[10px] text-green-400 font-bold uppercase tracking-wider">Mínimo</p>
@@ -229,7 +304,6 @@
                         </div>
                         <a id="minLink" href="#" target="_blank" class="hidden w-full py-2 bg-green-900/40 hover:bg-green-800 text-green-300 text-[10px] font-bold rounded border border-green-700/50 transition">VER ANUNCIO</a>
                     </div>
-                    <!-- Max -->
                     <div class="stat-box max p-3 rounded-xl text-center">
                         <div class="mb-2">
                             <p class="text-[10px] text-red-400 font-bold uppercase tracking-wider">Máximo</p>
@@ -254,512 +328,253 @@
 
         <!-- Info -->
         <div class="mt-8 p-5 rounded-2xl border border-blue-900/30 bg-gray-900/40 text-center fade-in backdrop-blur-sm">
-            <p class="text-[10px] text-gray-500 leading-relaxed font-light">
-                Powered by Advanced AI Valuation Tech. Market data is real-time estimation.
+            <div class="flex items-center justify-center space-x-2 mb-3">
+                <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <h3 class="text-blue-400 font-bold text-xs uppercase tracking-widest">SOBRE ESTA HERRAMIENTA</h3>
+            </div>
+            <p class="text-[11px] sm:text-xs text-gray-400 leading-relaxed text-justify px-2 font-light">
+                BusquedaSlot transforma tu dispositivo en un tasador profesional. 
+                Utilizamos IA para identificar el modelo y evaluar su <strong>estado de conservación</strong>.
+                Rastreamos en tiempo real <span class="text-blue-300 font-semibold">Wallapop, Vinted, eBay y Amazon</span>.
+                Te ofrecemos una valoración de mercado (Mínimo/Máximo) y un <strong>Precio Recomendado</strong> personalizado.
             </p>
         </div>
 
-        <!-- Error Alert Mejorado (Con Botón de Rescate) -->
-        <div id="errorMessage" class="hidden fixed bottom-5 left-4 right-4 z-[100] p-4 bg-red-950/95 border border-red-500 text-white rounded-xl shadow-2xl backdrop-blur-md animate-bounce-in">
-            <div class="flex items-center mb-2">
-                <div class="mr-3 p-2 bg-red-900 rounded-full flex-shrink-0">⚠️</div>
-                <div class="flex-1">
-                    <p class="font-bold text-xs uppercase text-red-400">Error de Sistema</p>
-                    <p id="errorText" class="text-sm font-medium leading-tight text-white"></p>
-                </div>
-                <button onclick="document.getElementById('errorMessage').classList.add('hidden')" class="ml-3 p-2 text-gray-400 hover:text-white bg-red-900/50 rounded-lg">✕</button>
+        <!-- Error Alert -->
+        <div id="errorMessage" class="hidden fixed bottom-5 left-4 right-4 z-[100] p-4 bg-red-950/95 border border-red-500 text-white rounded-xl shadow-2xl backdrop-blur-md animate-bounce-in flex items-center">
+            <div class="mr-3 p-2 bg-red-900 rounded-full flex-shrink-0">⚠️</div>
+            <div class="flex-1">
+                <p class="font-bold text-xs uppercase text-red-400">Error del Sistema</p>
+                <p id="errorText" class="text-sm font-medium leading-tight"></p>
             </div>
-            <button onclick="resetKey()" class="w-full mt-2 py-2 bg-yellow-600/20 border border-yellow-500/50 text-yellow-300 text-xs font-bold rounded-lg hover:bg-yellow-600/40 transition">
-                🔑 REINICIAR CLAVE
+            <button onclick="document.getElementById('errorMessage').classList.add('hidden'); showApiKeyModal();" class="ml-3 px-3 py-1 text-xs bg-red-800 hover:bg-red-700 text-white rounded uppercase font-bold border border-red-600">
+                REVISAR CLAVE
             </button>
         </div>
 
     </main>
-
-    <!-- API KEY MODAL (LA SOLUCIÓN ANTI-BLOQUEO) -->
-    <div id="keyModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm hidden">
-        <div class="bg-gray-900 border border-blue-500/50 rounded-2xl p-6 w-full max-w-sm shadow-2xl relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 via-cyan-400 to-blue-600"></div>
-            
-            <div class="text-center mb-6">
-                <h2 class="text-xl font-black text-white mb-2 neon-title">BIENVENIDO</h2>
-                <p class="text-xs text-gray-400">Para evitar bloqueos de Google, la clave se guardará solo en tu dispositivo.</p>
-            </div>
-
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-[10px] uppercase text-blue-400 font-bold mb-1 tracking-wider">Pega tu API KEY aquí:</label>
-                    <input type="text" id="apiKeyInput" placeholder="AIzaSy..." class="w-full p-3 rounded-xl neon-input text-sm font-mono bg-gray-800/50 border-gray-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all">
-                    <p class="text-[9px] text-gray-500 mt-2 text-right italic">* No se subirá a ningún servidor</p>
-                </div>
-
-                <button onclick="saveApiKey()" class="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg shadow-blue-900/30 transition transform active:scale-95">
-                    GUARDAR Y ENTRAR
-                </button>
-            </div>
-        </div>
-    </div>
-
 </div>
 
 <script>
-    // ==========================================
-    // CONFIGURACIÓN "ANTI-BLOQUEO"
-    // ==========================================
-    
-    // EL CÓDIGO AHORA ESTÁ VACÍO. LA CLAVE SE PIDE AL USUARIO.
-    let currentApiKey = localStorage.getItem('slot_scout_key') || ""; 
+    // --- GESTIÓN DE API KEY SEGURA ---
+    // Clave por defecto (la del usuario), pero permitimos sobreescribirla si se bloquea
+    const DEFAULT_API_KEY = "AIzaSyAZCMMeWWsvvwoJOjU17UeL7FVKo0fOfOc"; 
 
-    // ==========================================
+    function getApiKey() {
+        // Prioridad: Clave guardada por el usuario > Clave por defecto
+        return localStorage.getItem('GEMINI_API_KEY') || DEFAULT_API_KEY;
+    }
 
+    function saveApiKey() {
+        const input = document.getElementById('api-key-input');
+        const key = input.value.trim();
+        if (key.length > 10) {
+            localStorage.setItem('GEMINI_API_KEY', key);
+            closeApiKeyModal();
+            showError("Clave guardada correctamente.", true); // Info message
+        } else {
+            alert("Por favor, introduce una API Key válida.");
+        }
+    }
+
+    function showApiKeyModal() {
+        document.getElementById('api-key-modal').classList.remove('hidden');
+        document.getElementById('errorMessage').classList.add('hidden');
+    }
+
+    function closeApiKeyModal() {
+        document.getElementById('api-key-modal').classList.add('hidden');
+    }
+
+    // --- Lógica de Acceso / Muro de Pago ---
+    const APP_ID = 'busquedaslot_access_v1';
+    const VALID_PREFIX = 'SLOT-';
+
+    function checkAccess() {
+        const token = localStorage.getItem(APP_ID);
+        if (token && token.startsWith(VALID_PREFIX)) {
+            unlockApp();
+        }
+    }
+
+    function unlockApp() {
+        document.getElementById('access-screen').style.display = 'none';
+        document.getElementById('app').classList.remove('hidden');
+        document.getElementById('settings-btn').classList.remove('hidden');
+    }
+
+    document.getElementById('btn-pay').addEventListener('click', () => {
+        const btn = document.getElementById('btn-pay');
+        const processing = document.getElementById('payment-processing');
+        const success = document.getElementById('payment-success');
+        const genId = document.getElementById('generated-id');
+        
+        btn.classList.add('hidden');
+        processing.classList.remove('hidden');
+        
+        setTimeout(() => {
+            processing.classList.add('hidden');
+            success.classList.remove('hidden');
+            const randomCode = Math.floor(1000 + Math.random() * 9000);
+            genId.textContent = VALID_PREFIX + randomCode;
+        }, 2000);
+    });
+
+    document.getElementById('btn-unlock').addEventListener('click', () => {
+        const input = document.getElementById('access-code-input');
+        const error = document.getElementById('login-error');
+        const code = input.value.trim().toUpperCase();
+        
+        if (code.startsWith(VALID_PREFIX) && code.length > 5) {
+            localStorage.setItem(APP_ID, code);
+            unlockApp();
+        } else {
+            error.classList.remove('hidden');
+            input.classList.add('border-red-500');
+            setTimeout(() => {
+                error.classList.add('hidden');
+                input.classList.remove('border-red-500');
+            }, 2000);
+        }
+    });
+
+    // --- APP LOGIC ---
+    let state = { image: null, mimeType: null, stream: null, voices: [] };
     const $ = (id) => document.getElementById(id);
     const els = {
-        keyModal: $('keyModal'),
-        keyInput: $('apiKeyInput'),
-        // ...resto de elementos
-        imageInput: $('imageInput'),
-        preview: $('imagePreview'),
-        previewCont: $('imagePreviewContainer'),
-        initOpts: $('initialOptions'),
-        camSec: $('cameraSection'),
-        video: $('cameraStream'),
-        canvas: $('cameraCanvas'),
-        voiceTog: $('voiceToggle'),
-        searchBtn: $('searchButton'),
-        btnText: $('buttonText'),
-        resCard: $('results-card'),
-        loader: $('loadingIndicator'),
-        loadMsg: $('loadingMessage'),
-        retryMsg: $('retryMessage'),
-        errToast: $('errorMessage'),
-        errText: $('errorText'),
-        idCar: $('identifiedCar'),
-        idBrand: $('carBrand'),
-        idCond: $('carCondition'),
-        idSec: $('carIdentification'),
-        priceSec: $('priceSummary'),
-        recP: $('recPrice'),
-        minP: $('minPrice'),
-        maxP: $('maxPrice'),
-        minLink: $('minLink'),
-        maxLink: $('maxLink'),
-        srcList: $('sourcesList'),
-        srcCont: $('sourcesContainer'),
-        noRes: $('noResults')
+        imageInput: $('imageInput'), preview: $('imagePreview'), previewCont: $('imagePreviewContainer'),
+        initOpts: $('initialOptions'), camSec: $('cameraSection'), video: $('cameraStream'), canvas: $('cameraCanvas'),
+        voiceTog: $('voiceToggle'), searchBtn: $('searchButton'), btnText: $('buttonText'), resCard: $('results-card'),
+        loader: $('loadingIndicator'), loadMsg: $('loadingMessage'), errToast: $('errorMessage'), errText: $('errorText'),
+        idCar: $('identifiedCar'), idBrand: $('carBrand'), idCond: $('carCondition'), idSec: $('carIdentification'),
+        priceSec: $('priceSummary'), recP: $('recPrice'), minP: $('minPrice'), maxP: $('maxPrice'),
+        minLink: $('minLink'), maxLink: $('maxLink'), srcList: $('sourcesList'), srcCont: $('sourcesContainer'), noRes: $('noResults')
     };
 
-    // --- GESTIÓN DE CLAVES ---
-    const checkKey = () => {
-        if (!currentApiKey || currentApiKey.length < 10) {
-            els.keyModal.classList.remove('hidden');
-        } else {
-            els.keyModal.classList.add('hidden');
-        }
-    };
-
-    window.saveApiKey = () => {
-        const inputKey = els.keyInput.value.trim();
-        if (inputKey && inputKey.startsWith('AIza')) {
-            localStorage.setItem('slot_scout_key', inputKey);
-            currentApiKey = inputKey;
-            els.keyModal.classList.add('hidden');
-            alert("✅ Clave guardada. Ya puedes escanear.");
-        } else {
-            alert("⚠️ La clave parece incorrecta. Debe empezar por 'AIza'.");
-        }
-    };
-
-    window.resetKey = () => {
-        localStorage.removeItem('slot_scout_key');
-        currentApiKey = "";
-        location.reload();
-    };
-    // -------------------------
-
-    const getModelUrl = () => `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${currentApiKey}`;
-
-    let state = {
-        image: null,
-        mimeType: null,
-        stream: null,
-        voices: []
-    };
-
-    const initVoice = () => {
-        if ('speechSynthesis' in window) {
-            state.voices = window.speechSynthesis.getVoices();
-            window.speechSynthesis.onvoiceschanged = () => state.voices = window.speechSynthesis.getVoices();
-        }
-    };
-
-    const speak = (txt) => {
-        if (!els.voiceTog.checked || !('speechSynthesis' in window)) return;
-        window.speechSynthesis.cancel();
-        const utt = new SpeechSynthesisUtterance(txt);
-        const voice = state.voices.find(v => v.lang === 'es-ES') || state.voices.find(v => v.lang.includes('es'));
-        if (voice) utt.voice = voice;
-        utt.rate = 1.05;
-        window.speechSynthesis.speak(utt);
-    };
-
-    const fileToB64 = (file) => new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(',')[1]);
-        reader.readAsDataURL(file);
-    });
+    const initVoice = () => { if ('speechSynthesis' in window) state.voices = window.speechSynthesis.getVoices(); window.speechSynthesis.onvoiceschanged = () => state.voices = window.speechSynthesis.getVoices(); };
+    const speak = (txt) => { if (!els.voiceTog.checked || !('speechSynthesis' in window)) return; window.speechSynthesis.cancel(); const utt = new SpeechSynthesisUtterance(txt); const voice = state.voices.find(v => v.lang === 'es-ES') || state.voices.find(v => v.lang.includes('es')); if (voice) utt.voice = voice; utt.rate = 1.05; window.speechSynthesis.speak(utt); };
+    const fileToB64 = (file) => new Promise((resolve) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result.split(',')[1]); reader.readAsDataURL(file); });
 
     const handleImage = async (fileBlob) => {
         if (!fileBlob) return;
         try {
             if (els.preview.src.startsWith('blob:')) URL.revokeObjectURL(els.preview.src);
             els.preview.src = URL.createObjectURL(fileBlob);
-            els.previewCont.classList.remove('hidden');
-            els.initOpts.classList.add('hidden');
-            els.camSec.classList.add('hidden');
-            els.resCard.classList.add('hidden');
-            
+            els.previewCont.classList.remove('hidden'); els.initOpts.classList.add('hidden'); els.camSec.classList.add('hidden'); els.resCard.classList.add('hidden');
             const file = fileBlob instanceof File ? fileBlob : new File([fileBlob], 'capture.jpg', { type: 'image/jpeg' });
-            state.image = await fileToB64(file);
-            state.mimeType = file.type;
-            
-            els.searchBtn.disabled = false;
-            els.btnText.textContent = "ANALIZAR MERCADO";
-            speak("Imagen lista.");
-            
-            $('statusDot').classList.remove('bg-gray-600', 'bg-red-500');
-            $('statusDot').classList.add('bg-green-500');
-            
-        } catch (e) { showError("Error interno de imagen.", false); }
+            state.image = await fileToB64(file); state.mimeType = file.type;
+            els.searchBtn.disabled = false; els.btnText.textContent = "ANALIZAR MERCADO"; speak("Imagen cargada. Pulsa Analizar.");
+        } catch (e) { showError("Error al procesar imagen.", false); }
     };
 
-    const showError = (msg, isCritical = true) => {
-        console.error(msg);
-        let userMsg = msg;
+    const showError = (msg, isInfo) => { 
+        speak(isInfo ? "Atención." : "Error detectado."); 
+        els.errText.textContent = msg; 
+        const toast = els.errToast;
+        if(isInfo) { toast.classList.replace('border-red-500', 'border-blue-500'); }
+        else { toast.classList.replace('border-blue-500', 'border-red-500'); }
         
-        // Diagnóstico inteligente de errores
-        if (msg.includes('403') || msg.includes('400')) {
-            userMsg = "🚫 CLAVE NO VÁLIDA: Es posible que la clave haya sido borrada o bloqueada. Pulsa 'REINICIAR CLAVE' e introduce una nueva.";
-        } else if (msg.includes('429')) {
-             userMsg = "⏳ SERVIDOR SATURADO: Demasiadas peticiones seguidas. Esperando para reintentar...";
-             isCritical = false; 
-        } else if (msg.includes('Failed to fetch')) {
-            userMsg = "🌐 SIN CONEXIÓN: Verifica tu internet.";
-        }
-
-        els.errText.textContent = userMsg;
-        els.errToast.classList.remove('hidden');
-        els.loader.classList.add('hidden');
-        
-        if (state.image) els.searchBtn.disabled = false;
-        
-        if (!msg.includes('403') && !msg.includes('400')) {
-            setTimeout(() => els.errToast.classList.add('hidden'), isCritical ? 10000 : 5000);
-        }
+        toast.classList.remove('hidden'); 
+        els.loader.classList.add('hidden'); 
+        if (state.image) els.searchBtn.disabled = false; 
     };
 
-    // Función de Fetch con Reintento Automático
-    const fetchWithRetry = async (options, retries = 3, backoff = 2000) => {
-        const url = getModelUrl(); 
-        try {
-            const res = await fetch(url, options);
-            
-            if (res.status === 429) {
-                if (retries > 0) {
-                    console.warn(`Error 429 detectado. Reintentando en ${backoff}ms...`);
-                    els.retryMsg.classList.remove('hidden');
-                    els.retryMsg.textContent = `Servidor ocupado. Reintentando en ${backoff/1000}s...`;
-                    
-                    await new Promise(r => setTimeout(r, backoff));
-                    return fetchWithRetry(options, retries - 1, backoff * 1.5);
-                } else {
-                     throw new Error("HTTP 429: Demasiadas peticiones. Espera un minuto.");
-                }
-            }
-            
-            els.retryMsg.classList.add('hidden');
-            return res;
-            
-        } catch (e) {
-             if (retries > 0 && (e.message.includes('429') || e.name === 'TypeError')) {
-                console.warn(`Error de red. Reintentando...`);
-                await new Promise(r => setTimeout(r, backoff));
-                return fetchWithRetry(options, retries - 1, backoff * 1.5);
-             }
-             throw e;
-        }
-    };
+    // Camera Logic
+    const startCam = async () => { els.initOpts.classList.add('hidden'); els.previewCont.classList.add('hidden'); els.camSec.classList.remove('hidden'); if (state.stream) stopCam(); try { state.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" } } }); els.video.srcObject = state.stream; } catch (e) { try { state.stream = await navigator.mediaDevices.getUserMedia({ video: true }); els.video.srcObject = state.stream; } catch (err) { resetUI(); showError("No hay cámara disponible.", false); } } };
+    const stopCam = () => { if (state.stream) { state.stream.getTracks().forEach(t => t.stop()); els.video.srcObject = null; state.stream = null; } };
+    const capture = () => { if (!state.stream) return; const ctx = els.canvas.getContext('2d'); els.canvas.width = els.video.videoWidth; els.canvas.height = els.video.videoHeight; ctx.drawImage(els.video, 0, 0); stopCam(); els.canvas.toBlob(handleImage, 'image/jpeg', 0.85); };
+    const resetUI = () => { stopCam(); state.image = null; els.imageInput.value = ''; els.initOpts.classList.remove('hidden'); els.camSec.classList.add('hidden'); els.previewCont.classList.add('hidden'); els.resCard.classList.add('hidden'); els.searchBtn.disabled = true; els.btnText.innerText = "ESPERANDO IMAGEN"; $('statusDot').classList.replace('bg-green-500', 'bg-gray-600'); };
 
-    const startCam = async () => {
-        els.initOpts.classList.add('hidden');
-        els.previewCont.classList.add('hidden');
-        els.camSec.classList.remove('hidden');
-        if (state.stream) stopCam();
-        try {
-            state.stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { facingMode: { exact: "environment" } } 
-            });
-            els.video.srcObject = state.stream;
-        } catch (e) {
-            try {
-                state.stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                els.video.srcObject = state.stream;
-            } catch (err) { 
-                // Restore UI
-                els.initOpts.classList.remove('hidden');
-                els.camSec.classList.add('hidden');
-                alert("Por favor habilita el acceso a la cámara para escanear coches."); 
-            }
-        }
-    };
-
-    const stopCam = () => {
-        if (state.stream) {
-            state.stream.getTracks().forEach(t => t.stop());
-            els.video.srcObject = null;
-            state.stream = null;
-        }
-    };
-
-    const capture = () => {
-        if (!state.stream) return;
-        const ctx = els.canvas.getContext('2d');
-        els.canvas.width = els.video.videoWidth;
-        els.canvas.height = els.video.videoHeight;
-        ctx.drawImage(els.video, 0, 0);
-        stopCam();
-        els.canvas.toBlob(handleImage, 'image/jpeg', 0.85);
-    };
-
-    const resetUI = () => {
-        stopCam();
-        state.image = null;
-        els.imageInput.value = '';
-        els.initOpts.classList.remove('hidden');
-        els.camSec.classList.add('hidden');
-        els.previewCont.classList.add('hidden');
-        els.resCard.classList.add('hidden');
-        els.searchBtn.disabled = true;
-        els.btnText.innerText = "ESPERANDO IMAGEN";
-        $('statusDot').classList.remove('bg-green-500');
-        $('statusDot').classList.add('bg-gray-600');
-        els.retryMsg.classList.add('hidden');
-    };
-
+    // --- CORE LOGIC ---
     window.startSearch = async () => {
+        const apiKey = getApiKey();
         if (!state.image) return;
-        
-        if (!currentApiKey || currentApiKey.length < 10) {
-            checkKey(); // Show modal again
-            return;
-        }
 
-        els.resCard.classList.remove('hidden');
-        els.loader.classList.remove('hidden');
-        els.idSec.classList.add('hidden');
-        els.priceSec.classList.add('hidden');
-        els.noRes.classList.add('hidden');
-        els.srcCont.classList.add('hidden');
-        els.srcList.innerHTML = '';
-        els.searchBtn.disabled = true;
+        els.resCard.classList.remove('hidden'); els.loader.classList.remove('hidden'); els.idSec.classList.add('hidden'); els.priceSec.classList.add('hidden'); els.noRes.classList.add('hidden'); els.srcCont.classList.add('hidden'); els.srcList.innerHTML = ''; els.searchBtn.disabled = true; els.resCard.scrollIntoView({ behavior: 'smooth', block: 'start' }); speak("Analizando imagen...");
         
-        els.resCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
         try {
-            // 1. Identificar
-            els.loadMsg.textContent = "ESCANNEANDO MODELO...";
-            const carInfo = await identifyCar(state.image);
-            
-            if (!carInfo.isSlotCar && !carInfo.model) {
-                if(carInfo.keywords) carInfo.isSlotCar = true; 
-                else throw new Error("Objeto no reconocido como Slot Car.");
-            }
-            
-            els.idCar.textContent = `${carInfo.model}`;
-            els.idBrand.textContent = `${carInfo.brand}`;
-            
-            const conditionText = carInfo.condition || "Usado";
-            els.idCond.textContent = `Estado: ${conditionText.toUpperCase()}`;
-            els.idSec.classList.remove('hidden');
-            
-            // 2. Precios
-            els.loadMsg.textContent = "ANALIZANDO MERCADO GLOBAL...";
-            const platforms = [
-                { name: "Wallapop / Vinted", query: `precio ${carInfo.keywords} wallapop vinted` },
-                { name: "Mercado Coleccionista", query: `buy ${carInfo.keywords} slot car ebay amazon price` }
-            ];
+            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
-            const results = await Promise.all(platforms.map(p => fetchPrices(p)));
-            renderResults(results, carInfo, conditionText);
+            // 1. Identify
+            els.loadMsg.textContent = "IDENTIFICANDO...";
+            const carInfo = await identifyCar(state.image, endpoint);
+            if (!carInfo.isSlotCar) throw new Error("No es un coche de slot válido.");
+            
+            els.idCar.textContent = `${carInfo.model}`; els.idBrand.textContent = `${carInfo.brand}`;
+            const condition = carInfo.condition || "Usado";
+            els.idCond.textContent = `Estado: ${condition.toUpperCase()}`; els.idSec.classList.remove('hidden');
+            
+            // 2. Prices
+            els.loadMsg.textContent = "BUSCANDO PRECIOS...";
+            const platforms = [{ name: "Wallapop", query: `precio ${carInfo.keywords} wallapop` }, { name: "eBay", query: `buy ${carInfo.keywords} slot car ebay` }, { name: "Tiendas", query: `precio ${carInfo.keywords} tienda slot` }];
+            const results = await Promise.all(platforms.map(p => fetchPrices(p, endpoint)));
+            renderResults(results, carInfo, condition);
 
         } catch (e) { 
-            showError(e.message); 
-        } 
-        finally { els.loader.classList.add('hidden'); els.searchBtn.disabled = false; }
+            console.error(e);
+            if(e.message.includes('400') || e.message.includes('API Key')) {
+                showError("Error de Clave. Pulsa en el engranaje arriba a la derecha para actualizarla.", false);
+            } else {
+                showError(e.message || "Error desconocido", false); 
+            }
+        } finally { els.loader.classList.add('hidden'); els.searchBtn.disabled = false; }
     };
 
-    const identifyCar = async (b64) => {
-        const prompt = `Analiza la imagen de este coche de slot. 
-        Devuelve JSON: 
-        {
-            "isSlotCar": true, 
-            "brand": "Marca", 
-            "model": "Modelo", 
-            "keywords": "marca modelo referencia",
-            "condition": "Estado visual estimado (Opciones: 'nuevo' (si parece en caja o perfecto), 'bueno' (usado normal), 'malo' (dañado o faltas))"
-        }. 
-        Si no es slot: {"isSlotCar": false}`;
+    const identifyCar = async (b64, endpoint) => {
+        const prompt = `Analiza. JSON: { "isSlotCar": true, "brand": "Marca", "model": "Modelo", "keywords": "marca modelo", "condition": "Estado visual ('nuevo', 'bueno', 'malo')" }. Si no: {"isSlotCar": false}`;
+        const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }, { inlineData: { mimeType: state.mimeType, data: b64 } }] }], generationConfig: { responseMimeType: "application/json" } }) });
         
-        const payload = {
-            contents: [{ parts: [{ text: prompt }, { inlineData: { mimeType: state.mimeType, data: b64 } }] }],
-            generationConfig: { responseMimeType: "application/json" }
-        };
-        
-        const res = await fetchWithRetry({ 
-            method: 'POST', 
-            headers: { 'Content-Type': 'application/json' }, 
-            body: JSON.stringify(payload) 
-        });
-        
-        if(!res.ok) {
-            throw new Error(`Error HTTP ${res.status}`);
-        }
         const json = await res.json();
+        
+        if (json.error) throw new Error(json.error.message);
+        if (!json.candidates || !json.candidates[0]) throw new Error("La IA no devolvió resultados.");
+        
         return JSON.parse(json.candidates[0].content.parts[0].text);
     };
 
-    const fetchPrices = async (platform) => {
-        const searchPrompt = `Busca precios en EUR para "${platform.query}". Lista 3 precios concretos encontrados.`;
-        const fallbackPrompt = `Estima 3 precios realistas en EUR para "${platform.query}" basándote en datos históricos de mercado.`;
-
-        const payloadWithTools = {
-            contents: [{ parts: [{ text: searchPrompt }] }],
-            tools: [{ "google_search": {} }]
-        };
-
-        const payloadFallback = {
-            contents: [{ parts: [{ text: fallbackPrompt }] }]
-        };
-
+    const fetchPrices = async (platform, endpoint) => {
         try {
-            const res = await fetchWithRetry({ 
-                method: 'POST', 
-                headers: { 'Content-Type': 'application/json' }, 
-                body: JSON.stringify(payloadWithTools) 
-            });
-            
-            if(!res.ok) throw new Error(`HTTP ${res.status}`);
-
+            const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: `Busca 3 precios EUR: ${platform.query}` }] }], tools: [{ "google_search": {} }] }) });
             const json = await res.json();
-            
-            if (!json.candidates) throw new Error("No candidates");
-
-            return { 
-                platform: platform.name, 
-                text: json.candidates?.[0]?.content?.parts?.[0]?.text || "", 
-                sources: json.candidates?.[0]?.groundingMetadata?.groundingAttributions || [] 
-            };
-        } catch (e) {
-            if (e.message.includes('403') || e.message.includes('400')) throw e;
-
-            try {
-                const res = await fetchWithRetry({ 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/json' }, 
-                    body: JSON.stringify(payloadFallback) 
-                });
-                const json = await res.json();
-                return { 
-                    platform: platform.name + " (Estimado)", 
-                    text: json.candidates?.[0]?.content?.parts?.[0]?.text || "", 
-                    sources: [] 
-                };
-            } catch (err2) {
-                return { platform: platform.name, text: null, sources: [] };
-            }
-        }
+            if (json.error || !json.candidates) return { platform: platform.name, text: null, sources: [] };
+            return { platform: platform.name, text: json.candidates[0].content.parts[0].text || "", sources: json.candidates[0].groundingMetadata?.groundingAttributions || [] };
+        } catch (e) { return { platform: platform.name, text: null, sources: [] }; }
     };
 
     const renderResults = (results, carInfo, condition) => {
-        let priceData = [];
-        let htmlSources = '';
+        let priceData = []; let htmlSources = '';
         const regex = /(?:€\s?|EUR\s?)(\d+[\.,]?\d*)|(\d+[\.,]?\d*)\s?(?:€|EUR)/gi;
-
         results.forEach(res => {
             if (!res.text) return;
-            let primaryLink = res.sources.length > 0 ? res.sources[0].web.uri : null;
-            let match;
+            let link = res.sources.length > 0 ? res.sources[0].web.uri : null;
+            let match; let found = false;
             while ((match = regex.exec(res.text)) !== null) {
                 let val = parseFloat((match[1] || match[2]).replace(',', '.'));
-                if (!isNaN(val) && val > 5 && val < 2000) {
-                    priceData.push({ value: val, link: primaryLink });
-                }
+                if (!isNaN(val) && val > 15 && val < 1000) { priceData.push({ value: val, link: link }); found = true; }
             }
-            if (res.text.length > 5) {
-                const links = res.sources.map(s => s.web?.uri ? `<a href="${s.web.uri}" target="_blank" class="text-blue-400 underline block truncate text-[10px] mt-1 p-1 bg-gray-900 rounded hover:text-white">🔗 ${s.web.title}</a>` : '').slice(0, 2).join('');
-                htmlSources += `<div class="bg-gray-800 p-3 rounded-lg border-l-2 border-blue-600 shadow-md mb-2"><h5 class="font-bold text-gray-300 text-xs">${res.platform}</h5><p class="text-[10px] text-gray-400 mb-1 leading-snug">${res.text.replace(/\*/g, '').substring(0, 120)}...</p>${links}</div>`;
+            if (res.text.length > 10 && (found || res.sources.length > 0)) {
+                const links = res.sources.map(s => s.web?.uri ? `<a href="${s.web.uri}" target="_blank" class="text-blue-400 underline block truncate text-[10px] mt-1 p-1 bg-gray-900 rounded">🔗 ${s.web.title}</a>` : '').slice(0, 2).join('');
+                htmlSources += `<div class="bg-gray-800 p-3 rounded-lg border-l-2 border-blue-600 shadow-md"><h5 class="font-bold text-gray-300 text-xs">${res.platform}</h5><p class="text-[10px] text-gray-400 mb-1 leading-snug">${res.text.substring(0, 100)}...</p>${links}</div>`;
             }
         });
 
         if (priceData.length > 0) {
             priceData.sort((a, b) => a.value - b.value);
-            if(priceData.length > 4) priceData = priceData.slice(1, -1);
-            
-            const minVal = priceData[0].value;
-            const maxVal = priceData[priceData.length - 1].value;
-            const minLink = priceData[0].link;
-            const maxLink = priceData[priceData.length - 1].link;
-
-            let recPrice = 0;
-            const avg = (minVal + maxVal) / 2;
-            
-            if (condition.toLowerCase().includes('nuevo')) {
-                recPrice = maxVal * 0.95;
-            } else if (condition.toLowerCase().includes('bueno')) {
-                recPrice = avg;
-            } else {
-                recPrice = minVal * 1.1;
-            }
+            const minVal = priceData[0].value; const maxVal = priceData[priceData.length - 1].value;
+            let recPrice = condition.toLowerCase().includes('nuevo') ? maxVal * 0.9 : (condition.toLowerCase().includes('bueno') ? (minVal + maxVal) / 2 : minVal * 1.1);
             recPrice = Math.round(recPrice);
-
-            els.minP.textContent = `${minVal}€`;
-            els.maxP.textContent = `${maxVal}€`;
-            els.recP.textContent = `${recPrice}€`;
-
-            const setupLink = (el, link) => {
-                if (link) { el.href = link; el.classList.remove('hidden'); el.classList.add('inline-block'); } 
-                else { el.classList.add('hidden'); }
-            };
-            setupLink(els.minLink, minLink);
-            setupLink(els.maxLink, maxLink);
-
+            els.minP.textContent = `${minVal}€`; els.maxP.textContent = `${maxVal}€`; els.recP.textContent = `${recPrice}€`;
+            const setupLink = (el, link) => { if (link) { el.href = link; el.classList.remove('hidden'); el.classList.add('inline-block'); } else el.classList.add('hidden'); };
+            setupLink(els.minLink, priceData[0].link); setupLink(els.maxLink, priceData[priceData.length - 1].link);
             els.priceSec.classList.remove('hidden');
-            
-            const speechText = `Identificado: ${carInfo.brand}, ${carInfo.model}. Precios de mercado encontrados: entre ${minVal} y ${maxVal} euros. Mi valoración recomendada es de ${recPrice} euros.`;
-            speak(speechText);
-
+            speak(`Identificado ${carInfo.brand} ${carInfo.model}. Precios entre ${minVal} y ${maxVal} euros. Recomiendo ${recPrice} euros.`);
         } else {
-            els.noRes.classList.remove('hidden');
-            speak("Datos insuficientes para tasar este modelo exacto.");
+            els.noRes.classList.remove('hidden'); speak(`Identificado ${carInfo.model}, pero sin precios claros.`);
         }
-
-        if (htmlSources) {
-            els.srcList.innerHTML = htmlSources;
-            els.srcCont.classList.remove('hidden');
-        }
+        if (htmlSources) { els.srcList.innerHTML = htmlSources; els.srcCont.classList.remove('hidden'); }
     };
 
-    document.addEventListener('DOMContentLoaded', () => {
-        initVoice();
-        checkKey();
-        $('cameraButton').onclick = startCam;
-        $('captureButton').onclick = capture;
-        $('cancelCaptureButton').onclick = resetUI;
-        $('uploadFileButton').onclick = () => els.imageInput.click();
-        $('changePhotoButton').onclick = resetUI;
-        $('voiceToggle').onchange = (e) => { $('voiceStatus').textContent = e.target.checked ? 'ON' : 'OFF'; };
-        els.imageInput.onchange = (e) => handleImage(e.target.files[0]);
-        resetUI();
-    });
+    document.addEventListener('DOMContentLoaded', () => { checkAccess(); initVoice(); $('cameraButton').onclick = startCam; $('captureButton').onclick = capture; $('cancelCaptureButton').onclick = resetUI; $('uploadFileButton').onclick = () => els.imageInput.click(); $('changePhotoButton').onclick = resetUI; $('voiceToggle').onchange = (e) => { $('voiceStatus').textContent = e.target.checked ? 'ON' : 'OFF'; }; els.imageInput.onchange = (e) => handleImage(e.target.files[0]); });
 </script>
 </body>
 </html>
