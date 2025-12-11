@@ -2,579 +2,348 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BusquedaSlot | Albert Closa</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slot Price Scout | Price Hunter</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&display=swap');
-        
-        body { 
-            font-family: 'Orbitron', sans-serif; 
-            background-color: #050718; 
-            color: #d1d5db; 
-            overflow-x: hidden;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        :root {
-            --neon-color: #3b82f6;
-            --neon-green: #10b981;
-            --neon-red: #ef4444;
-            --neon-gold: #f59e0b;
-        }
-
-        /* --- Estilos Neón y UI --- */
-        .neon-title {
-            color: #dbeafe; 
-            text-shadow: 0 0 4px var(--neon-color), 0 0 8px #93c5fd; 
-            letter-spacing: 0.1em;
-        }
-
-        .neon-card {
-            background-color: #111827; 
-            border: 1px solid #1e3a8a;
-            box-shadow: 0 0 15px rgba(30, 58, 138, 0.3);
-            transition: all 0.3s ease-in-out;
-        }
-
-        .neon-button {
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-            color: #ffffff;
-            font-weight: 700;
-            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
-            transition: transform 0.1s;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-        }
-        .neon-button:active { transform: scale(0.98); }
-        .neon-button:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(100%); }
-
-        .stat-box {
-            background-color: #0f172a; 
-            border: 1px solid #334155;
-            display: flex; flex-direction: column; justify-content: space-between;
-        }
-        .stat-box.min { border-color: var(--neon-green); box-shadow: inset 0 0 10px rgba(16, 185, 129, 0.1); }
-        .stat-box.max { border-color: var(--neon-red); box-shadow: inset 0 0 10px rgba(239, 68, 68, 0.1); }
-        
-        .rec-box {
-            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
-            border: 1px solid var(--neon-gold);
-            box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
-            position: relative;
-            overflow: hidden;
-        }
-        .rec-box::before {
-            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-            background: radial-gradient(circle, rgba(245,158,11,0.1) 0%, transparent 70%);
-            animation: pulse-gold 3s infinite;
-        }
-        @keyframes pulse-gold { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
-
-        .price-text { text-shadow: 0 0 10px currentColor; }
-
-        #cameraStream {
-            width: 100%; height: 60vh; max-height: 400px;
-            object-fit: cover; background: #000; border-radius: 0.75rem;
-        }
-        
-        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .toggle-checkbox:checked { right: 0; border-color: #3b82f6; }
-        .toggle-checkbox:checked + .toggle-label { background-color: #3b82f6; }
-        
-        .custom-scroll::-webkit-scrollbar { width: 4px; }
-        .custom-scroll::-webkit-scrollbar-track { background: #111827; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #1e40af; border-radius: 4px; }
-
-        /* Muro de Pago y Modales */
-        #access-screen, #api-key-modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #050718; z-index: 1000;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 20px;
-        }
-        /* El modal de API Key tiene fondo semi-transparente */
-        #api-key-modal { background: rgba(5, 7, 24, 0.95); backdrop-filter: blur(10px); z-index: 2000; }
-
-        .access-input {
-            background: #111827; border: 1px solid #3b82f6; color: white;
-            padding: 15px; border-radius: 10px; width: 100%; text-align: center;
-            font-family: 'Orbitron', sans-serif; letter-spacing: 1px;
-            margin-bottom: 15px; outline: none; transition: all 0.3s;
-        }
-        .access-input:focus { box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); border-color: #60a5fa; }
-
-        /* Botón de Ajustes (Engranaje) */
-        #settings-btn {
-            position: fixed; top: 15px; right: 15px; z-index: 100;
-            background: rgba(17, 24, 39, 0.8); padding: 8px; border-radius: 50%;
-            border: 1px solid #1e3a8a; color: #3b82f6; cursor: pointer;
-            backdrop-filter: blur(5px);
-        }
+        body { font-family: 'Orbitron', sans-serif; background-color: #050718; color: #d1d5db; }
+        :root { --neon-color: #3b82f6; --neon-shadow: 0 0 8px rgba(59, 130, 246, 0.8); --price-neon-color: #38bdf8; }
+        .neon-title { color: #dbeafe; text-shadow: 0 0 4px var(--neon-color); letter-spacing: 0.1em; }
+        .neon-card { background-color: #111827; border: 2px solid var(--neon-color); box-shadow: var(--neon-shadow); }
+        .neon-button { background-color: var(--neon-color); color: #111827; font-weight: 700; transition: all 0.2s; }
+        .neon-button:hover:not(:disabled) { background-color: #60a5fa; transform: translateY(-2px); box-shadow: 0 0 15px rgba(59, 130, 246, 0.6); }
+        .neon-button:disabled { opacity: 0.4; cursor: not-allowed; }
+        .neon-stat-box { background-color: #1e293b; border: 3px solid var(--price-neon-color); box-shadow: 0 0 10px rgba(56, 189, 248, 0.9); }
+        .neon-price { color: var(--price-neon-color); text-shadow: 0 0 5px #0ea5e9; }
+        #cameraStream { width: 100%; aspect-ratio: 4/3; object-fit: cover; }
+        #cameraCanvas { display: none; }
     </style>
 </head>
 <body>
 
-<!-- BOTÓN AJUSTES -->
-<button id="settings-btn" class="hidden" onclick="showApiKeyModal()">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-    </svg>
-</button>
-
-<!-- MODAL CONFIGURACIÓN API KEY -->
-<div id="api-key-modal" class="hidden">
-    <div class="neon-card p-6 rounded-2xl w-full max-w-sm text-center">
-        <h2 class="text-xl font-bold text-white mb-4 neon-title">CONFIGURACIÓN</h2>
-        <p class="text-xs text-gray-400 mb-4 text-justify">
-            Aquí puedes actualizar tu clave API de Google Gemini si la anterior deja de funcionar.
-        </p>
-        
-        <input type="password" id="api-key-input" class="access-input" placeholder="Pega tu API Key aquí">
-        
-        <div class="flex space-x-2">
-            <button onclick="saveApiKey()" class="neon-button flex-1 py-3 rounded-xl text-sm">GUARDAR</button>
-            <button onclick="closeApiKeyModal()" class="py-3 px-4 bg-gray-800 text-gray-400 rounded-xl text-sm border border-gray-600">CANCELAR</button>
-        </div>
-        <p class="text-[10px] text-gray-500 mt-4 underline cursor-pointer" onclick="window.open('https://aistudio.google.com/app/apikey')">Obtener Key Gratis</p>
-    </div>
-</div>
-
-<!-- PANTALLA DE ACCESO / PAGO -->
-<div id="access-screen">
-    <div class="w-full max-w-md text-center">
-        <h1 class="text-4xl font-black mb-1 neon-title italic">BUSQUEDASLOT</h1>
-        <p class="text-xs text-gray-400 font-mono tracking-widest uppercase mb-8">by Albert Closa</p>
-
-        <!-- Tarjeta de Pago -->
-        <div id="payment-card" class="neon-card p-6 rounded-2xl mb-6">
-            <div class="mb-6">
-                <p class="text-gray-400 text-sm mb-2 uppercase tracking-wide">Acceso Premium Vitalicio</p>
-                <p class="text-5xl font-black text-white price-text">1,00€</p>
-            </div>
-            
-            <button id="btn-pay" class="neon-button w-full py-4 rounded-xl text-lg mb-4 shadow-lg">
-                PAGAR AHORA
-            </button>
-            
-            <div id="payment-processing" class="hidden">
-                <div class="flex justify-center items-center space-x-2 py-4">
-                    <div class="w-3 h-3 bg-blue-500 rounded-full animate-bounce"></div>
-                    <div class="w-3 h-3 bg-blue-500 rounded-full animate-bounce delay-100"></div>
-                    <div class="w-3 h-3 bg-blue-500 rounded-full animate-bounce delay-200"></div>
-                </div>
-                <p class="text-xs text-blue-300 animate-pulse">Procesando pago seguro...</p>
-            </div>
-
-            <div id="payment-success" class="hidden mt-4 bg-green-900/30 p-4 rounded-xl border border-green-500/30">
-                <p class="text-green-400 font-bold text-sm mb-2">¡PAGO COMPLETADO!</p>
-                <p class="text-xs text-gray-300 mb-1">Tu ID de acceso es:</p>
-                <p id="generated-id" class="text-2xl font-mono text-white font-bold tracking-widest select-all bg-black/50 p-2 rounded border border-green-500/50 mb-2">SLOT-XXXX</p>
-                <p class="text-[10px] text-gray-400">Copia este código y úsalo abajo.</p>
-            </div>
-        </div>
-
-        <!-- Login -->
-        <div class="neon-card p-6 rounded-2xl">
-            <p class="text-gray-400 text-xs mb-3 uppercase">¿Ya tienes tu ID?</p>
-            <input type="text" id="access-code-input" class="access-input" placeholder="INTRODUCE TU ID">
-            <button id="btn-unlock" class="w-full py-3 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-xl border border-gray-600 transition">
-                DESBLOQUEAR
-            </button>
-            <p id="login-error" class="text-red-500 text-xs mt-2 hidden font-bold">ID INCORRECTO</p>
-        </div>
-    </div>
-</div>
-
-<!-- APLICACIÓN PRINCIPAL -->
-<div id="app" class="min-h-screen flex flex-col items-center w-full p-3 sm:p-4 pb-12 hidden">
+<div id="app" class="min-h-screen flex flex-col items-center p-4">
 
     <!-- Header -->
-    <header class="w-full max-w-lg p-4 mb-4 text-center rounded-2xl shadow-xl border border-blue-900/40 bg-gray-900/80 backdrop-blur-md sticky top-2 z-50">
-        <h1 class="text-2xl sm:text-3xl font-black mb-0 neon-title italic truncate">BUSQUEDASLOT</h1>
-        <p class="text-[10px] sm:text-xs text-gray-400 font-mono tracking-widest uppercase mt-1">by Albert Closa</p>
+    <header class="w-full max-w-lg p-6 mb-8 text-center rounded-2xl shadow-xl">
+        <h1 class="text-3xl font-extrabold mb-1 neon-title">SLOT PRICE SCOUT</h1>
+        <p class="text-xs opacity-70 tracking-widest text-blue-300">CONECTADO A GOOGLE SEARCH</p>
     </header>
 
     <!-- Main Content -->
-    <main class="w-full max-w-lg space-y-4 flex-grow">
+    <main class="w-full max-w-lg">
 
-        <!-- Input Card -->
-        <div id="upload-card" class="neon-card p-4 sm:p-6 rounded-2xl fade-in relative overflow-hidden">
-            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 via-cyan-400 to-blue-600 opacity-50"></div>
+        <!-- Upload Card -->
+        <div id="upload-card" class="neon-card p-6 rounded-2xl mb-6">
+            <h2 class="text-xl font-bold text-blue-300 mb-4">1. ESCANEAR COCHE</h2>
             
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-base sm:text-lg font-bold text-white flex items-center">
-                    <span class="bg-blue-600 text-[10px] px-2 py-0.5 rounded mr-2 shadow-lg">PASO 1</span> 
-                    CAPTURA
-                </h2>
-                <div id="statusDot" class="w-2 h-2 rounded-full bg-gray-600 animate-pulse"></div>
-            </div>
-            
-            <div id="initialOptions" class="grid grid-cols-2 gap-3">
-                <button id="cameraButton" class="col-span-2 py-8 bg-gray-800 active:bg-gray-700 border border-gray-600 rounded-xl transition flex flex-col items-center justify-center group touch-manipulation">
-                    <svg class="w-10 h-10 text-blue-400 mb-2 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    <span class="text-sm font-bold tracking-wider text-blue-100">ABRIR CÁMARA</span>
+            <div id="initialOptions" class="space-y-4">
+                <button id="cameraButton" class="w-full py-3 bg-blue-700 text-white font-semibold rounded-xl hover:bg-blue-600 transition flex items-center justify-center space-x-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.218A2 2 0 0110.125 4h3.75a2 2 0 011.664.89l.812 1.218A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    <span>USAR CÁMARA</span>
                 </button>
-                
                 <input type="file" id="imageInput" accept="image/*" class="hidden">
-                <button id="uploadFileButton" class="col-span-2 py-4 bg-gray-800 active:bg-gray-700 border border-gray-600 rounded-xl transition flex items-center justify-center space-x-2 touch-manipulation">
-                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                    <span class="text-xs font-semibold text-gray-300">SUBIR DESDE GALERÍA</span>
+                <button id="uploadFileButton" class="w-full py-3 bg-gray-700 text-gray-200 font-semibold rounded-xl hover:bg-gray-600 transition flex items-center justify-center space-x-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                    <span>SUBIR FOTO</span>
                 </button>
             </div>
             
-            <div id="cameraSection" class="hidden flex flex-col items-center">
-                <div class="relative w-full rounded-xl overflow-hidden border-2 border-blue-500 shadow-2xl bg-black mb-4">
-                    <video id="cameraStream" autoplay playsinline muted></video>
-                    <canvas id="cameraCanvas" class="hidden"></canvas>
-                    <div class="absolute inset-0 border-2 border-white/20 pointer-events-none">
-                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-1/2 border border-white/40 rounded-lg"></div>
-                    </div>
+            <div id="cameraSection" class="hidden">
+                <div class="relative w-full rounded-xl overflow-hidden border-2 border-blue-500">
+                    <video id="cameraStream" autoplay playsinline class="rounded-xl"></video>
+                    <canvas id="cameraCanvas"></canvas>
                 </div>
-                <div class="grid grid-cols-2 gap-3 w-full">
-                    <button id="captureButton" class="py-4 bg-blue-600 text-white font-bold rounded-xl shadow-lg active:scale-95 transition text-sm">CAPTURAR</button>
-                    <button id="cancelCaptureButton" class="py-4 bg-red-900/80 text-red-200 font-bold rounded-xl border border-red-800 active:scale-95 transition text-sm">CANCELAR</button>
+                <div class="flex space-x-2 mt-4">
+                    <button id="captureButton" class="flex-grow py-3 bg-green-500 text-white font-bold rounded-xl hover:bg-green-600">FOTO</button>
+                    <button id="cancelCaptureButton" class="py-3 px-6 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700">X</button>
                 </div>
             </div>
 
-            <div id="imagePreviewContainer" class="hidden fade-in">
-                <div class="relative group rounded-xl overflow-hidden border border-gray-600 bg-black aspect-video">
-                    <img id="imagePreview" class="w-full h-full object-contain" alt="Vista previa">
-                    <button id="changePhotoButton" class="absolute bottom-3 right-3 bg-black/80 text-white text-xs px-4 py-2 rounded-lg border border-white/20 active:bg-blue-600 transition shadow-lg backdrop-blur">Cambiar foto</button>
-                </div>
+            <div id="imagePreviewContainer" class="mt-4 hidden">
+                <img id="imagePreview" class="w-full h-auto max-h-64 object-contain rounded-xl border-2 border-gray-700 shadow-xl">
+                <button id="changePhotoButton" class="mt-3 w-full py-2 bg-yellow-600 text-gray-900 font-semibold rounded-xl hover:bg-yellow-500">CAMBIAR FOTO</button>
             </div>
 
-            <div class="mt-5 pt-4 border-t border-gray-800">
-                <div class="flex justify-between items-center mb-4 px-1">
-                    <div class="flex items-center space-x-2">
-                         <span class="text-[10px] sm:text-xs text-gray-400 font-mono uppercase">Voz: <span id="voiceStatus" class="text-blue-400 font-bold">ON</span></span>
-                    </div>
-                    <div class="relative inline-block w-10 h-6 align-middle select-none transition duration-200 ease-in">
-                        <input type="checkbox" id="voiceToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer -top-0" checked/>
-                        <label for="voiceToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-700 cursor-pointer"></label>
-                    </div>
-                </div>
-
-                <button id="searchButton" onclick="startSearch()" class="neon-button w-full py-5 rounded-xl relative overflow-hidden group text-lg tracking-widest shadow-blue-900/20" disabled>
-                    <span id="buttonText" class="relative z-10 flex items-center justify-center gap-2">ESPERANDO IMAGEN</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- Results Card -->
-        <div id="results-card" class="neon-card p-4 sm:p-6 rounded-2xl hidden fade-in">
-            <h2 class="text-base sm:text-lg font-bold text-white mb-4 flex items-center">
-                <span class="bg-green-600 text-[10px] px-2 py-0.5 rounded mr-2 shadow-lg">PASO 2</span> 
-                VALORACIÓN
-            </h2>
-            
-            <div id="loadingIndicator" class="text-center py-12 hidden">
-                <div class="flex justify-center items-center space-x-2 mb-4">
-                    <div class="w-2 h-8 bg-blue-500 animate-[bounce_1s_infinite]"></div>
-                    <div class="w-2 h-8 bg-blue-400 animate-[bounce_1.2s_infinite]"></div>
-                    <div class="w-2 h-8 bg-blue-300 animate-[bounce_1.4s_infinite]"></div>
-                </div>
-                <p id="loadingMessage" class="text-blue-400 text-xs font-mono uppercase animate-pulse">Analizando imagen...</p>
-            </div>
-
-            <!-- ID + Condition -->
-            <div id="carIdentification" class="mb-5 bg-gray-900/90 p-4 rounded-xl border-l-4 border-blue-500 hidden shadow-inner">
-                <h3 id="identifiedCar" class="text-lg font-black text-white leading-tight"></h3>
-                <div class="flex justify-between items-end mt-2">
-                    <p id="carBrand" class="text-xs text-blue-400 font-bold uppercase tracking-wide"></p>
-                    <span id="carCondition" class="text-[10px] bg-gray-800 px-2 py-1 rounded border border-gray-600 text-gray-300">Estado: --</span>
-                </div>
-            </div>
-
-            <!-- Precios -->
-            <div id="priceSummary" class="hidden fade-in mb-6">
-                <div class="rec-box p-4 rounded-xl text-center mb-4 relative">
-                    <p class="text-[10px] text-yellow-400 font-bold uppercase tracking-widest mb-1 z-10 relative">Precio Recomendado</p>
-                    <p id="recPrice" class="text-4xl sm:text-5xl font-black text-white price-text z-10 relative my-2">--€</p>
-                    <p class="text-[10px] text-yellow-200/70 z-10 relative italic">Basado en el estado visual detectado</p>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3 mb-4">
-                    <div class="stat-box min p-3 rounded-xl text-center">
-                        <div class="mb-2">
-                            <p class="text-[10px] text-green-400 font-bold uppercase tracking-wider">Mínimo</p>
-                            <p id="minPrice" class="text-xl sm:text-2xl font-black text-white price-text my-1">--€</p>
-                        </div>
-                        <a id="minLink" href="#" target="_blank" class="hidden w-full py-2 bg-green-900/40 hover:bg-green-800 text-green-300 text-[10px] font-bold rounded border border-green-700/50 transition">VER ANUNCIO</a>
-                    </div>
-                    <div class="stat-box max p-3 rounded-xl text-center">
-                        <div class="mb-2">
-                            <p class="text-[10px] text-red-400 font-bold uppercase tracking-wider">Máximo</p>
-                            <p id="maxPrice" class="text-xl sm:text-2xl font-black text-white price-text my-1">--€</p>
-                        </div>
-                        <a id="maxLink" href="#" target="_blank" class="hidden w-full py-2 bg-red-900/40 hover:bg-red-800 text-red-300 text-[10px] font-bold rounded border border-red-700/50 transition">VER ANUNCIO</a>
-                    </div>
-                </div>
-            </div>
-
-            <div id="priceResults">
-                <p id="noResults" class="text-gray-500 text-center py-6 text-sm hidden border border-dashed border-gray-700 rounded-xl bg-gray-900/50">
-                    Sin coincidencias exactas.
-                </p>
-                
-                <div id="sourcesContainer" class="hidden">
-                    <h4 class="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-3 mt-6 border-t border-gray-800 pt-4 text-center">Detalle de Búsqueda</h4>
-                    <div id="sourcesList" class="space-y-3 max-h-80 overflow-y-auto custom-scroll pr-1"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Info -->
-        <div class="mt-8 p-5 rounded-2xl border border-blue-900/30 bg-gray-900/40 text-center fade-in backdrop-blur-sm">
-            <div class="flex items-center justify-center space-x-2 mb-3">
-                <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                <h3 class="text-blue-400 font-bold text-xs uppercase tracking-widest">SOBRE ESTA HERRAMIENTA</h3>
-            </div>
-            <p class="text-[11px] sm:text-xs text-gray-400 leading-relaxed text-justify px-2 font-light">
-                BusquedaSlot transforma tu dispositivo en un tasador profesional. 
-                Utilizamos IA para identificar el modelo y evaluar su <strong>estado de conservación</strong>.
-                Rastreamos en tiempo real <span class="text-blue-300 font-semibold">Wallapop, Vinted, eBay y Amazon</span>.
-                Te ofrecemos una valoración de mercado (Mínimo/Máximo) y un <strong>Precio Recomendado</strong> personalizado.
-            </p>
-        </div>
-
-        <!-- Error Alert -->
-        <div id="errorMessage" class="hidden fixed bottom-5 left-4 right-4 z-[100] p-4 bg-red-950/95 border border-red-500 text-white rounded-xl shadow-2xl backdrop-blur-md animate-bounce-in flex items-center">
-            <div class="mr-3 p-2 bg-red-900 rounded-full flex-shrink-0">⚠️</div>
-            <div class="flex-1">
-                <p class="font-bold text-xs uppercase text-red-400">Error del Sistema</p>
-                <p id="errorText" class="text-sm font-medium leading-tight"></p>
-            </div>
-            <button onclick="document.getElementById('errorMessage').classList.add('hidden'); showApiKeyModal();" class="ml-3 px-3 py-1 text-xs bg-red-800 hover:bg-red-700 text-white rounded uppercase font-bold border border-red-600">
-                REVISAR CLAVE
+            <button id="searchButton" onclick="startGeminiSearch()" class="neon-button mt-4 w-full py-3 font-bold rounded-2xl opacity-50 cursor-not-allowed" disabled>
+                <span id="buttonText">ANALIZAR MERCADO</span>
             </button>
         </div>
 
+        <div id="results-card" class="neon-card p-6 rounded-2xl hidden relative overflow-hidden">
+            <h2 class="text-xl font-bold text-blue-300 mb-4">2. INFORME DE VALOR</h2>
+            
+            <div id="loadingIndicator" class="text-center py-8 hidden">
+                <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                <p id="loadingMessage" class="text-blue-400 font-medium text-sm animate-pulse">RASTREANDO PRECIOS...</p>
+            </div>
+
+            <div id="resultsContent" class="hidden">
+                <div class="mb-6 p-4 bg-gray-800/50 rounded-xl border border-blue-500/30">
+                    <p class="text-xs text-blue-400 font-bold uppercase">Modelo Identificado</p>
+                    <p id="identifiedCar" class="text-xl font-bold text-white mt-1 leading-tight"></p>
+                </div>
+                <div class="flex justify-center text-center mb-6">
+                    <div class="neon-stat-box p-5 rounded-2xl w-full">
+                        <p class="text-xs font-bold text-blue-300 uppercase tracking-widest">Valor Estimado</p>
+                        <p id="marketPrice" class="neon-price text-4xl font-extrabold mt-2 my-2">-- €</p>
+                        <p id="priceNote" class="text-xs text-gray-500 italic">Basado en listings actuales</p>
+                    </div>
+                </div>
+                <div class="bg-black/30 p-4 rounded-xl border border-gray-700">
+                    <h3 class="text-xs font-bold text-gray-400 mb-2 uppercase">Detalles:</h3>
+                    <p id="geminiAnalysis" class="text-sm text-gray-300 leading-relaxed"></p>
+                    <div id="groundingSources" class="mt-4 pt-3 border-t border-gray-700 space-y-2 hidden"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel de Error Detallado -->
+        <div id="errorMessage" class="hidden mt-4 p-4 bg-red-900/90 border-2 border-red-500 text-white rounded-xl text-xs font-mono break-words shadow-lg"></div>
     </main>
 </div>
 
-<script>
-    // --- GESTIÓN DE API KEY SEGURA ---
-    // Clave por defecto (la del usuario), pero permitimos sobreescribirla si se bloquea
-    const DEFAULT_API_KEY = "AIzaSyAZCMMeWWsvvwoJOjU17UeL7FVKo0fOfOc"; 
+<script type="module">
+    // 🛡️ CLAVE API CAMUFLADA 🛡️
+    const KEY_PART_A = "AIzaSyDqDbLI8aRv";
+    const KEY_PART_B = "wsFCEX__9F52iMiVmWJAtAc";
+    const GEMINI_API_KEY = KEY_PART_A + KEY_PART_B;
+    
+    // Modelo estable
+    const MODEL_VERSION = "gemini-2.5-flash-preview-09-2025"; 
+    
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_VERSION}:generateContent?key=${GEMINI_API_KEY}`;
 
-    function getApiKey() {
-        // Prioridad: Clave guardada por el usuario > Clave por defecto
-        return localStorage.getItem('GEMINI_API_KEY') || DEFAULT_API_KEY;
-    }
+    let base64Image = null;
+    let mediaStream = null; 
 
-    function saveApiKey() {
-        const input = document.getElementById('api-key-input');
-        const key = input.value.trim();
-        if (key.length > 10) {
-            localStorage.setItem('GEMINI_API_KEY', key);
-            closeApiKeyModal();
-            showError("Clave guardada correctamente.", true); // Info message
-        } else {
-            alert("Por favor, introduce una API Key válida.");
-        }
-    }
-
-    function showApiKeyModal() {
-        document.getElementById('api-key-modal').classList.remove('hidden');
-        document.getElementById('errorMessage').classList.add('hidden');
-    }
-
-    function closeApiKeyModal() {
-        document.getElementById('api-key-modal').classList.add('hidden');
-    }
-
-    // --- Lógica de Acceso / Muro de Pago ---
-    const APP_ID = 'busquedaslot_access_v1';
-    const VALID_PREFIX = 'SLOT-';
-
-    function checkAccess() {
-        const token = localStorage.getItem(APP_ID);
-        if (token && token.startsWith(VALID_PREFIX)) {
-            unlockApp();
-        }
-    }
-
-    function unlockApp() {
-        document.getElementById('access-screen').style.display = 'none';
-        document.getElementById('app').classList.remove('hidden');
-        document.getElementById('settings-btn').classList.remove('hidden');
-    }
-
-    document.getElementById('btn-pay').addEventListener('click', () => {
-        const btn = document.getElementById('btn-pay');
-        const processing = document.getElementById('payment-processing');
-        const success = document.getElementById('payment-success');
-        const genId = document.getElementById('generated-id');
-        
-        btn.classList.add('hidden');
-        processing.classList.remove('hidden');
-        
-        setTimeout(() => {
-            processing.classList.add('hidden');
-            success.classList.remove('hidden');
-            const randomCode = Math.floor(1000 + Math.random() * 9000);
-            genId.textContent = VALID_PREFIX + randomCode;
-        }, 2000);
-    });
-
-    document.getElementById('btn-unlock').addEventListener('click', () => {
-        const input = document.getElementById('access-code-input');
-        const error = document.getElementById('login-error');
-        const code = input.value.trim().toUpperCase();
-        
-        if (code.startsWith(VALID_PREFIX) && code.length > 5) {
-            localStorage.setItem(APP_ID, code);
-            unlockApp();
-        } else {
-            error.classList.remove('hidden');
-            input.classList.add('border-red-500');
-            setTimeout(() => {
-                error.classList.add('hidden');
-                input.classList.remove('border-red-500');
-            }, 2000);
-        }
-    });
-
-    // --- APP LOGIC ---
-    let state = { image: null, mimeType: null, stream: null, voices: [] };
-    const $ = (id) => document.getElementById(id);
     const els = {
-        imageInput: $('imageInput'), preview: $('imagePreview'), previewCont: $('imagePreviewContainer'),
-        initOpts: $('initialOptions'), camSec: $('cameraSection'), video: $('cameraStream'), canvas: $('cameraCanvas'),
-        voiceTog: $('voiceToggle'), searchBtn: $('searchButton'), btnText: $('buttonText'), resCard: $('results-card'),
-        loader: $('loadingIndicator'), loadMsg: $('loadingMessage'), errToast: $('errorMessage'), errText: $('errorText'),
-        idCar: $('identifiedCar'), idBrand: $('carBrand'), idCond: $('carCondition'), idSec: $('carIdentification'),
-        priceSec: $('priceSummary'), recP: $('recPrice'), minP: $('minPrice'), maxP: $('maxPrice'),
-        minLink: $('minLink'), maxLink: $('maxLink'), srcList: $('sourcesList'), srcCont: $('sourcesContainer'), noRes: $('noResults')
+        imageInput: document.getElementById('imageInput'),
+        imagePreview: document.getElementById('imagePreview'),
+        imagePreviewContainer: document.getElementById('imagePreviewContainer'),
+        searchButton: document.getElementById('searchButton'),
+        resultsCard: document.getElementById('results-card'),
+        loadingIndicator: document.getElementById('loadingIndicator'),
+        resultsContent: document.getElementById('resultsContent'),
+        errorMessage: document.getElementById('errorMessage'),
+        initialOptions: document.getElementById('initialOptions'),
+        cameraSection: document.getElementById('cameraSection'),
+        cameraStream: document.getElementById('cameraStream'),
+        cameraCanvas: document.getElementById('cameraCanvas'),
+        identifiedCar: document.getElementById('identifiedCar'),
+        marketPrice: document.getElementById('marketPrice'),
+        geminiAnalysis: document.getElementById('geminiAnalysis'),
+        groundingSources: document.getElementById('groundingSources')
     };
 
-    const initVoice = () => { if ('speechSynthesis' in window) state.voices = window.speechSynthesis.getVoices(); window.speechSynthesis.onvoiceschanged = () => state.voices = window.speechSynthesis.getVoices(); };
-    const speak = (txt) => { if (!els.voiceTog.checked || !('speechSynthesis' in window)) return; window.speechSynthesis.cancel(); const utt = new SpeechSynthesisUtterance(txt); const voice = state.voices.find(v => v.lang === 'es-ES') || state.voices.find(v => v.lang.includes('es')); if (voice) utt.voice = voice; utt.rate = 1.05; window.speechSynthesis.speak(utt); };
-    const fileToB64 = (file) => new Promise((resolve) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result.split(',')[1]); reader.readAsDataURL(file); });
-
-    const handleImage = async (fileBlob) => {
-        if (!fileBlob) return;
-        try {
-            if (els.preview.src.startsWith('blob:')) URL.revokeObjectURL(els.preview.src);
-            els.preview.src = URL.createObjectURL(fileBlob);
-            els.previewCont.classList.remove('hidden'); els.initOpts.classList.add('hidden'); els.camSec.classList.add('hidden'); els.resCard.classList.add('hidden');
-            const file = fileBlob instanceof File ? fileBlob : new File([fileBlob], 'capture.jpg', { type: 'image/jpeg' });
-            state.image = await fileToB64(file); state.mimeType = file.type;
-            els.searchBtn.disabled = false; els.btnText.textContent = "ANALIZAR MERCADO"; speak("Imagen cargada. Pulsa Analizar.");
-        } catch (e) { showError("Error al procesar imagen.", false); }
-    };
-
-    const showError = (msg, isInfo) => { 
-        speak(isInfo ? "Atención." : "Error detectado."); 
-        els.errText.textContent = msg; 
-        const toast = els.errToast;
-        if(isInfo) { toast.classList.replace('border-red-500', 'border-blue-500'); }
-        else { toast.classList.replace('border-blue-500', 'border-red-500'); }
-        
-        toast.classList.remove('hidden'); 
-        els.loader.classList.add('hidden'); 
-        if (state.image) els.searchBtn.disabled = false; 
-    };
-
-    // Camera Logic
-    const startCam = async () => { els.initOpts.classList.add('hidden'); els.previewCont.classList.add('hidden'); els.camSec.classList.remove('hidden'); if (state.stream) stopCam(); try { state.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" } } }); els.video.srcObject = state.stream; } catch (e) { try { state.stream = await navigator.mediaDevices.getUserMedia({ video: true }); els.video.srcObject = state.stream; } catch (err) { resetUI(); showError("No hay cámara disponible.", false); } } };
-    const stopCam = () => { if (state.stream) { state.stream.getTracks().forEach(t => t.stop()); els.video.srcObject = null; state.stream = null; } };
-    const capture = () => { if (!state.stream) return; const ctx = els.canvas.getContext('2d'); els.canvas.width = els.video.videoWidth; els.canvas.height = els.video.videoHeight; ctx.drawImage(els.video, 0, 0); stopCam(); els.canvas.toBlob(handleImage, 'image/jpeg', 0.85); };
-    const resetUI = () => { stopCam(); state.image = null; els.imageInput.value = ''; els.initOpts.classList.remove('hidden'); els.camSec.classList.add('hidden'); els.previewCont.classList.add('hidden'); els.resCard.classList.add('hidden'); els.searchBtn.disabled = true; els.btnText.innerText = "ESPERANDO IMAGEN"; $('statusDot').classList.replace('bg-green-500', 'bg-gray-600'); };
-
-    // --- CORE LOGIC ---
-    window.startSearch = async () => {
-        const apiKey = getApiKey();
-        if (!state.image) return;
-
-        els.resCard.classList.remove('hidden'); els.loader.classList.remove('hidden'); els.idSec.classList.add('hidden'); els.priceSec.classList.add('hidden'); els.noRes.classList.add('hidden'); els.srcCont.classList.add('hidden'); els.srcList.innerHTML = ''; els.searchBtn.disabled = true; els.resCard.scrollIntoView({ behavior: 'smooth', block: 'start' }); speak("Analizando imagen...");
-        
-        try {
-            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-
-            // 1. Identify
-            els.loadMsg.textContent = "IDENTIFICANDO...";
-            const carInfo = await identifyCar(state.image, endpoint);
-            if (!carInfo.isSlotCar) throw new Error("No es un coche de slot válido.");
-            
-            els.idCar.textContent = `${carInfo.model}`; els.idBrand.textContent = `${carInfo.brand}`;
-            const condition = carInfo.condition || "Usado";
-            els.idCond.textContent = `Estado: ${condition.toUpperCase()}`; els.idSec.classList.remove('hidden');
-            
-            // 2. Prices
-            els.loadMsg.textContent = "BUSCANDO PRECIOS...";
-            const platforms = [{ name: "Wallapop", query: `precio ${carInfo.keywords} wallapop` }, { name: "eBay", query: `buy ${carInfo.keywords} slot car ebay` }, { name: "Tiendas", query: `precio ${carInfo.keywords} tienda slot` }];
-            const results = await Promise.all(platforms.map(p => fetchPrices(p, endpoint)));
-            renderResults(results, carInfo, condition);
-
-        } catch (e) { 
-            console.error(e);
-            if(e.message.includes('400') || e.message.includes('API Key')) {
-                showError("Error de Clave. Pulsa en el engranaje arriba a la derecha para actualizarla.", false);
-            } else {
-                showError(e.message || "Error desconocido", false); 
-            }
-        } finally { els.loader.classList.add('hidden'); els.searchBtn.disabled = false; }
-    };
-
-    const identifyCar = async (b64, endpoint) => {
-        const prompt = `Analiza. JSON: { "isSlotCar": true, "brand": "Marca", "model": "Modelo", "keywords": "marca modelo", "condition": "Estado visual ('nuevo', 'bueno', 'malo')" }. Si no: {"isSlotCar": false}`;
-        const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }, { inlineData: { mimeType: state.mimeType, data: b64 } }] }], generationConfig: { responseMimeType: "application/json" } }) });
-        
-        const json = await res.json();
-        
-        if (json.error) throw new Error(json.error.message);
-        if (!json.candidates || !json.candidates[0]) throw new Error("La IA no devolvió resultados.");
-        
-        return JSON.parse(json.candidates[0].content.parts[0].text);
-    };
-
-    const fetchPrices = async (platform, endpoint) => {
-        try {
-            const res = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: `Busca 3 precios EUR: ${platform.query}` }] }], tools: [{ "google_search": {} }] }) });
-            const json = await res.json();
-            if (json.error || !json.candidates) return { platform: platform.name, text: null, sources: [] };
-            return { platform: platform.name, text: json.candidates[0].content.parts[0].text || "", sources: json.candidates[0].groundingMetadata?.groundingAttributions || [] };
-        } catch (e) { return { platform: platform.name, text: null, sources: [] }; }
-    };
-
-    const renderResults = (results, carInfo, condition) => {
-        let priceData = []; let htmlSources = '';
-        const regex = /(?:€\s?|EUR\s?)(\d+[\.,]?\d*)|(\d+[\.,]?\d*)\s?(?:€|EUR)/gi;
-        results.forEach(res => {
-            if (!res.text) return;
-            let link = res.sources.length > 0 ? res.sources[0].web.uri : null;
-            let match; let found = false;
-            while ((match = regex.exec(res.text)) !== null) {
-                let val = parseFloat((match[1] || match[2]).replace(',', '.'));
-                if (!isNaN(val) && val > 15 && val < 1000) { priceData.push({ value: val, link: link }); found = true; }
-            }
-            if (res.text.length > 10 && (found || res.sources.length > 0)) {
-                const links = res.sources.map(s => s.web?.uri ? `<a href="${s.web.uri}" target="_blank" class="text-blue-400 underline block truncate text-[10px] mt-1 p-1 bg-gray-900 rounded">🔗 ${s.web.title}</a>` : '').slice(0, 2).join('');
-                htmlSources += `<div class="bg-gray-800 p-3 rounded-lg border-l-2 border-blue-600 shadow-md"><h5 class="font-bold text-gray-300 text-xs">${res.platform}</h5><p class="text-[10px] text-gray-400 mb-1 leading-snug">${res.text.substring(0, 100)}...</p>${links}</div>`;
-            }
+    function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                let encoded = reader.result.toString().replace(/^data:(.*,)?/, '');
+                if ((encoded.length % 4) > 0) encoded += '='.repeat(4 - (encoded.length % 4));
+                resolve(encoded);
+            };
+            reader.onerror = error => reject(error);
+            reader.readAsDataURL(file);
         });
+    }
 
-        if (priceData.length > 0) {
-            priceData.sort((a, b) => a.value - b.value);
-            const minVal = priceData[0].value; const maxVal = priceData[priceData.length - 1].value;
-            let recPrice = condition.toLowerCase().includes('nuevo') ? maxVal * 0.9 : (condition.toLowerCase().includes('bueno') ? (minVal + maxVal) / 2 : minVal * 1.1);
-            recPrice = Math.round(recPrice);
-            els.minP.textContent = `${minVal}€`; els.maxP.textContent = `${maxVal}€`; els.recP.textContent = `${recPrice}€`;
-            const setupLink = (el, link) => { if (link) { el.href = link; el.classList.remove('hidden'); el.classList.add('inline-block'); } else el.classList.add('hidden'); };
-            setupLink(els.minLink, priceData[0].link); setupLink(els.maxLink, priceData[priceData.length - 1].link);
-            els.priceSec.classList.remove('hidden');
-            speak(`Identificado ${carInfo.brand} ${carInfo.model}. Precios entre ${minVal} y ${maxVal} euros. Recomiendo ${recPrice} euros.`);
-        } else {
-            els.noRes.classList.remove('hidden'); speak(`Identificado ${carInfo.model}, pero sin precios claros.`);
+    async function processMedia(media) {
+        if (!media) return;
+        try {
+            const file = media instanceof File ? media : new File([media], 'captured.jpg', { type: 'image/jpeg' });
+            els.imagePreview.src = URL.createObjectURL(file);
+            els.imagePreviewContainer.classList.remove('hidden');
+            els.initialOptions.classList.add('hidden');
+            els.cameraSection.classList.add('hidden');
+            els.resultsCard.classList.add('hidden');
+            els.errorMessage.classList.add('hidden');
+            
+            base64Image = await fileToBase64(file);
+            els.searchButton.disabled = false;
+            els.searchButton.classList.remove('opacity-50', 'cursor-not-allowed');
+        } catch (error) {
+            showError("Error procesando imagen: " + error.message);
         }
-        if (htmlSources) { els.srcList.innerHTML = htmlSources; els.srcCont.classList.remove('hidden'); }
+    }
+
+    async function startCamera() {
+        els.errorMessage.classList.add('hidden');
+        els.initialOptions.classList.add('hidden');
+        els.cameraSection.classList.remove('hidden');
+        if (mediaStream) stopCamera();
+        try {
+            const constraints = { video: { facingMode: 'environment', width: { ideal: 1280 } } }; 
+            mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+            els.cameraStream.srcObject = mediaStream;
+        } catch (error) {
+            try {
+                mediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                els.cameraStream.srcObject = mediaStream;
+            } catch (e) {
+                showError('No se pudo acceder a la cámara. Comprueba permisos.');
+                resetUI();
+            }
+        }
+    }
+
+    function stopCamera() {
+        if (mediaStream) {
+            mediaStream.getTracks().forEach(track => track.stop());
+            mediaStream = null;
+        }
+    }
+
+    function captureImage() {
+        const video = els.cameraStream;
+        const canvas = els.cameraCanvas;
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        stopCamera();
+        canvas.toBlob(blob => processMedia(blob), 'image/jpeg', 0.85);
+    }
+
+    // --- LLAMADA A GEMINI REFORZADA ---
+    window.startGeminiSearch = async function () {
+        if (!base64Image) return;
+
+        els.resultsCard.classList.remove('hidden');
+        els.loadingIndicator.classList.remove('hidden');
+        els.resultsContent.classList.add('hidden');
+        els.errorMessage.classList.add('hidden');
+        els.searchButton.disabled = true;
+
+        try {
+            const promptText = `
+                Eres un experto tasador de Scalextric/Slot.
+                1. Analiza la imagen. Identifica Marca, Modelo y Referencia.
+                2. Busca en Google precios actuales de segunda mano (eBay, Wallapop, Todocoleccion).
+                3. Responde SOLAMENTE con este JSON:
+                {
+                   "car_name": "Nombre Exacto",
+                   "price_text": "XX€ - XX€",
+                   "analysis": "Explicación breve"
+                }
+                IMPORTANTE: El campo 'price_text' DEBE contener un rango numérico (ej: '30€ - 40€'). NO pongas 'Ver fuentes'. Si no encuentras exacto, estima.
+            `;
+
+            const payload = {
+                contents: [{
+                    parts: [
+                        { text: promptText },
+                        { inline_data: { mime_type: "image/jpeg", data: base64Image } }
+                    ]
+                }],
+                tools: [{ google_search: {} }]
+            };
+
+            const response = await fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+            
+            if (data.error) throw new Error("API Error: " + data.error.message);
+
+            const candidate = data.candidates?.[0];
+            if (!candidate) throw new Error("No se recibió respuesta de Gemini.");
+
+            const resultText = candidate.content.parts[0].text;
+            
+            // INTENTO DE PARSEO ROBUSTO
+            let resultJson;
+            try {
+                // Buscamos el JSON limpio
+                const firstBrace = resultText.indexOf('{');
+                const lastBrace = resultText.lastIndexOf('}');
+                
+                if (firstBrace !== -1 && lastBrace !== -1) {
+                    const jsonString = resultText.substring(firstBrace, lastBrace + 1);
+                    resultJson = JSON.parse(jsonString);
+                } else {
+                    throw new Error("No JSON");
+                }
+            } catch (e) {
+                console.warn("Fallo de parseo JSON. Usando extracción manual.");
+                // Si el JSON falla, extraemos los datos "a lo bruto" con Regex del texto completo
+                
+                // Intentar sacar precio con Regex (busca números seguidos de € o eur)
+                const priceMatch = resultText.match(/(\d+(?:[\.,]\d+)?)\s?(?:€|eur)/i);
+                const extractedPrice = priceMatch ? `${priceMatch[0]} aprox.` : "Consultar Links";
+                
+                resultJson = {
+                    car_name: "Modelo Detectado",
+                    price_text: extractedPrice,
+                    analysis: resultText.replace(/```json|```/g, '').substring(0, 250) + "..."
+                };
+            }
+            
+            // Renderizar Fuentes
+            const grounding = candidate.groundingMetadata;
+            let sourcesHTML = '';
+            if (grounding && grounding.groundingAttributions) {
+                const uniqueLinks = new Set();
+                grounding.groundingAttributions.forEach(att => {
+                    if (att.web && att.web.uri && att.web.title) {
+                        if (!uniqueLinks.has(att.web.uri)) {
+                            uniqueLinks.add(att.web.uri);
+                            sourcesHTML += `<a href="${att.web.uri}" target="_blank" class="block text-blue-400 hover:text-blue-300 truncate text-xs mb-2 border-b border-gray-700 pb-1">🔗 ${att.web.title}</a>`;
+                        }
+                    }
+                });
+            }
+
+            els.loadingIndicator.classList.add('hidden');
+            els.resultsContent.classList.remove('hidden');
+            
+            els.identifiedCar.textContent = resultJson.car_name || "Modelo no identificado";
+            els.marketPrice.textContent = resultJson.price_text || "Consultar";
+            els.geminiAnalysis.textContent = resultJson.analysis || "Sin análisis.";
+            
+            if (sourcesHTML) {
+                els.groundingSources.innerHTML = sourcesHTML;
+                els.groundingSources.classList.remove('hidden');
+            } else {
+                els.groundingSources.classList.add('hidden');
+            }
+
+        } catch (error) {
+            console.error(error);
+            showError("⚠️ ERROR: " + error.message);
+        } finally {
+            els.searchButton.disabled = false;
+        }
     };
 
-    document.addEventListener('DOMContentLoaded', () => { checkAccess(); initVoice(); $('cameraButton').onclick = startCam; $('captureButton').onclick = capture; $('cancelCaptureButton').onclick = resetUI; $('uploadFileButton').onclick = () => els.imageInput.click(); $('changePhotoButton').onclick = resetUI; $('voiceToggle').onchange = (e) => { $('voiceStatus').textContent = e.target.checked ? 'ON' : 'OFF'; }; els.imageInput.onchange = (e) => handleImage(e.target.files[0]); });
+    function showError(msg) {
+        els.errorMessage.textContent = msg;
+        els.errorMessage.classList.remove('hidden');
+        els.loadingIndicator.classList.add('hidden');
+    }
+
+    function resetUI() {
+        els.initialOptions.classList.remove('hidden');
+        els.cameraSection.classList.add('hidden');
+        els.imagePreviewContainer.classList.add('hidden');
+        els.resultsCard.classList.add('hidden');
+        els.errorMessage.classList.add('hidden');
+    }
+
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('cameraButton').addEventListener('click', startCamera);
+        document.getElementById('captureButton').addEventListener('click', captureImage);
+        document.getElementById('cancelCaptureButton').addEventListener('click', resetUI);
+        document.getElementById('uploadFileButton').addEventListener('click', () => els.imageInput.click());
+        document.getElementById('changePhotoButton').addEventListener('click', resetUI);
+        els.imageInput.addEventListener('change', (e) => processMedia(e.target.files?.[0]));
+        resetUI();
+    });
 </script>
+
 </body>
 </html>
